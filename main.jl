@@ -1,8 +1,12 @@
-include(joinpath(pwd(), "DCSideBatteryModeling","DCSideBatteryModeling.jl"))
+include(joinpath(pwd(), "DCSideBatteryModeling", "DCSideBatteryModeling.jl"))
 
 # Returns Generic ODE system
-system = get_system()
-ini_sys = get_ini_sys()
+model = get_model()
+ode_prob = instantiate_model(model, (0.0, 1))
+
+#problem = instantiate_problem(model, system, initial_guess)
+
+# ini_sys = get_ini_sys()
 #=
 parameters = get_params(Ub,fb,ωb,Sb,Vb)
 
