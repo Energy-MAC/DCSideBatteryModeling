@@ -1,48 +1,9 @@
+
 Ub = 690;
 fb = 60;
 ωb = 2 * pi * fb;
 Sb = 0.8e6;
 Vb = 690;
-
-mutable struct get_params
-    # AC side quantities
-    ωb::Float64
-    lg::Float64
-    rg::Float64
-    p_ref::Float64
-    q_ref::Float64
-    v_ref::Float64
-    ω_ref::Float64
-    vl::Float64
-    pl::Float64
-    lf::Float64
-    cf::Float64
-    rf::Float64
-    ωz::Float64
-    rt::Float64
-    lt::Float64
-    Dp::Float64
-    Dq::Float64
-    kip::Float64
-    kii::Float64
-    kffi::Float64
-    kvp::Float64
-    kvi::Float64
-    kffv::Float64
-    rv::Float64
-    lv::Float64
-    # DC Side quantities
-    leq::Float64
-    req::Float64
-    vb::Float64
-    vdc_ref::Float64
-    cdc::Float64
-    kivb::Float64
-    kpvb::Float64
-    kpib::Float64
-    kiib::Float64
-    Ts::Float64
-end
 
 function get_params(Ub, fb, ωb, Sb, Vb)
     # System base for AC side
