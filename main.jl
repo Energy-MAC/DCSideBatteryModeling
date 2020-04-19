@@ -1,10 +1,9 @@
-include(joinpath(pwd(),"DCSideBatteryModeling.jl")
+include(joinpath(pwd(), "DCSideBatteryModeling.jl"))
 
+#=
 parameters = get_params(Ub,fb,ωb,Sb,Vb)
 
 ic = get_IC()
-
-
 
 tspan = (0.0,0.5)
 prob = ODEProblem(ode_system!,ic.zero,tspan, parameters)
@@ -40,3 +39,4 @@ sol3 = solve(prob,Tsit5(),callback = cb, tstops=tstop)
 plot(sol1,vars=(0,13),title = "DC Voltage Before Load Step")
 
 parameters.pl
+=#
