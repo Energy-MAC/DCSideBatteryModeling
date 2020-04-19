@@ -163,31 +163,31 @@ function get_internal_model()
 
     # Temporary until SteadyState problems are resolved.
     model_lhs = [
-    d(eg_d)
-    d(eg_q)
-    d(is_d)
-    d(is_q)
-    d(ig_d)
-    d(ig_q)
-    d(pf)
-    d(qf)
-    d(ξ_d)
-    d(ξ_q)
-    d(γ_d)
-    d(γ_q)
-    d(vdc)
-    d(ibat)
-    d(η)
-    d(κ)
-    d(M)
-    d(L)
+        d(eg_d)
+        d(eg_q)
+        d(is_d)
+        d(is_q)
+        d(ig_d)
+        d(ig_q)
+        d(pf)
+        d(qf)
+        d(ξ_d)
+        d(ξ_q)
+        d(γ_d)
+        d(γ_q)
+        d(vdc)
+        d(ibat)
+        d(η)
+        d(κ)
+        d(M)
+        d(L)
     ]
 
     return model_lhs, model_rhs, states, variables, params
 end
 
 function get_model()
-   model_lhs, model_rhs, states, _, params = get_internal_model()
+    model_lhs, model_rhs, states, _, params = get_internal_model()
     t = params[1]
     return MTK.ODESystem(model_lhs .~ model_rhs, t, [states...], [params...][2:end])
 end
@@ -199,5 +199,11 @@ function instantiate_model(
 )
     parameter_values = instantiate_parameters(model) #, system)
     initial_conditions = instantiate_initial_conditions(model, parameter_values) #, system)
-    return DiffEqBase.ODEProblem(model, initial_conditions, tspan, parameter_values, jac = true)
+    return DiffEqBase.ODEProblem(
+        model,
+        initial_conditions,
+        tspan,
+        parameter_values,
+        jac = true,
+    )
 end

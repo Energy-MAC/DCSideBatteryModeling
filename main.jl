@@ -6,7 +6,7 @@ include(joinpath(pwd(), "DCSideBatteryModeling", "DCSideBatteryModeling.jl"))
 model = get_model()
 ode_prob = instantiate_model(model, (0.0, 0.1))
 sol1 = solve(ode_prob, Tsit5())
-plot(sol1,vars=(0,13),title = "DC Voltage Before Load Step")
+plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
 
 #=
 parameters.pl = 0.6;
