@@ -1,23 +1,14 @@
+using OrdinaryDiffEq
+using Plots
 include(joinpath(pwd(), "DCSideBatteryModeling", "DCSideBatteryModeling.jl"))
 
 # Returns Generic ODE system
 model = get_model()
-ode_prob = instantiate_model(model, (0.0, 1))
-
-#problem = instantiate_problem(model, system, initial_guess)
-
-# ini_sys = get_ini_sys()
-#=
-parameters = get_params(Ub,fb,ωb,Sb,Vb)
-
-ic = get_IC()
-
-tspan = (0.0,0.5)
-prob = ODEProblem(ode_system!,ic.zero,tspan, parameters)
-sol1 = solve(prob)
-
+ode_prob = instantiate_model(model, (0.0, 0.1))
+sol1 = solve(ode_prob, Tsit5())
 plot(sol1,vars=(0,13),title = "DC Voltage Before Load Step")
 
+#=
 parameters.pl = 0.6;
 
 tspan = (0.0,1)
