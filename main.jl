@@ -1,4 +1,7 @@
-include(joinpath(pwd(), "DCSideBatteryModeling.jl"))
+include(joinpath(pwd(), "DCSideBatteryModeling","DCSideBatteryModeling.jl"))
+
+# Returns Generic ODE system
+system = get_system()
 
 #=
 parameters = get_params(Ub,fb,ωb,Sb,Vb)
