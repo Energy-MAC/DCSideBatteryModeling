@@ -2,7 +2,6 @@
 using ModelingToolkit
 import DiffEqBase
 import PowerSystems
-import OrdinaryDiffEq
 import NLsolve
 
 const MTK = ModelingToolkit
