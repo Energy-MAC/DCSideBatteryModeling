@@ -1,9 +1,8 @@
-function _get_system()
+function get_internal_model()
 
     # Model Parameters
     params = MTK.@parameters begin
         t
-        ωg
         # AC side quantities
         ωb      # Base Frequency
         # Grid impadance
@@ -90,11 +89,10 @@ function _get_system()
     i_hat_q = kvp * (v_iref_d - eg_q) + kvi * ξ_q + ω_a * cf * eg_d # Inner current controller q PI
     v_md = kip * (i_hat_d - is_d) + kii * γ_d - ω_a * lf * is_q
     v_mq = kip * (i_hat_q - is_q) + kii * γ_q + ω_a * lf * is_d
-    p_inv = v_md * is_d + v_mq *is_q
+    p_inv = v_md * is_d + v_mq * is_q
     q_inv = -v_md * is_q + v_mq * is_d
     v_gd = (vl^2 / pl) * ig_d
     v_gq = (vl^2 / pl) * ig_q
-    ωg = ω_a
     i_ref = kpvb * (vdcʳ - vdc) + kivb * η
     i_in = (vb * ibat - ibat^2 * req) / vdc
     d_dc = (-12 / Ts) * M + kpib * (i_ref - i_in) + kiib * κ
@@ -102,17 +100,17 @@ function _get_system()
     model = [
         ### Grid forming equations
         #𝜕eg_d/𝜕t
-        d(eg_d) ~ (ωb / cf) * (is_d - ig_d) + ωg * ωb * eg_q
+        d(eg_d) ~ (ωb / cf) * (is_d - ig_d) + ω_a * ωb * eg_q
         #𝜕eg_q/𝜕t
-        d(eg_q) ~ (ωb / cf) * (is_q - ig_q) - ωg * ωb * eg_d
+        d(eg_q) ~ (ωb / cf) * (is_q - ig_q) - ω_a * ωb * eg_d
         #𝜕is_d/𝜕t
-        d(is_d) ~ (ωb / lf) * (v_md - eg_d) - (rf * ωb / lf) * is_d + ωb * ωg * is_q
+        d(is_d) ~ (ωb / lf) * (v_md - eg_d) - (rf * ωb / lf) * is_d + ωb * ω_a * is_q
         #𝜕is_q/𝜕t
-        d(is_q) ~ (ωb / lf) * (v_mq - eg_q) - (rf * ωb / lf) * is_q - ωb * ωg * is_d
+        d(is_q) ~ (ωb / lf) * (v_mq - eg_q) - (rf * ωb / lf) * is_q - ωb * ω_a * is_d
         #𝜕ig_d/𝜕t
-        d(ig_d) ~ (ωb / lt) * (eg_d - v_gd) - (rt * ωb / lt) * ig_d + ωb * ωg * ig_q
+        d(ig_d) ~ (ωb / lt) * (eg_d - v_gd) - (rt * ωb / lt) * ig_d + ωb * ω_a * ig_q
         #𝜕ig_q/𝜕t
-        d(ig_q) ~ (ωb / lt) * (eg_q - v_gq) - (rt * ωb / lt) * ig_q - ωb * ωg * ig_d
+        d(ig_q) ~ (ωb / lt) * (eg_q - v_gq) - (rt * ωb / lt) * ig_q - ωb * ω_a * ig_d
         #𝜕pf/𝜕t
         d(pf) ~ ωz * (pm - pf)
         #𝜕qf/𝜕t
@@ -135,11 +133,7 @@ function _get_system()
         #∂κ/dt
         d(κ) ~ i_ref - i_in # Integrator for DC/DC inner PI controller
         # ∂M/dt
-        d(M) ~
-            (-6 / Ts) * M +
-            (-12 / Ts^2) * L +
-            kpib * (i_ref - i_in) +
-            kiib * ibat # First term in Pade approximation
+        d(M) ~ (-6 / Ts) * M + (-12 / Ts^2) * L + kpib * (i_ref - i_in) + kiib * ibat # First term in Pade approximation
         # ∂M/dt
         d(L) ~ M # Second term in Pade approx.
     ]
@@ -147,7 +141,18 @@ function _get_system()
     return model, states, params
 end
 
-function get_system()
-    model, states, params = _get_system()
-    return MTK.ODESystem(model, [states...], [params...])
+function get_model()
+    model, states, params = get_internal_model()
+    t = params[1]
+    return MTK.ODESystem(model, t, [states...], [params...][2:end])
+end
+
+function instantiate_model(
+    model,
+    tspan::Tuple,
+    #system::PSY.System,
+)
+    parameters = instantiate_parameters(model) #, system)
+    initial_conditions = instantiate_initial_conditions(model) #, system)
+    return DiffEqBase.ODEProblem(model, initial_conditions, tspan, parameters, jac = true)
 end
