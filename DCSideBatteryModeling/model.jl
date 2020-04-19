@@ -1,7 +1,7 @@
-function get_system()
+function _get_system()
 
     # Model Parameters
-    MTK.@parameters begin
+    params = MTK.@parameters begin
         t
         ωg
         # AC side quantities
@@ -56,7 +56,7 @@ function get_system()
     MTK.@derivatives d'~t
 
     # Definition of the states
-    MTK.@variables begin
+    states = MTK.@variables begin
         eg_d(t) #d-axis capacitor filter voltage
         eg_q(t) #q-axis capacitor filter voltage
         is_d(t) #d-axis current flowing into filter
@@ -144,5 +144,10 @@ function get_system()
         d(L) ~ M # Second term in Pade approx.
     ]
 
-    return MTK.ODESystem(model)
+    return model, states, params
+end
+
+function get_system()
+    model, states, params = _get_system()
+    return MTK.ODESystem(model, [states...], [params...])
 end
