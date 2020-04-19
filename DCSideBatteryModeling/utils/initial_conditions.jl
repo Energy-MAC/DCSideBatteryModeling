@@ -1,5 +1,21 @@
 
-function instantiate_initial_conditions(model)# system::PSY.System)
+function solve_steady_state(initial_guess, parameter_values)
+    _, model_rhs, _, variables, params = get_internal_model()
+    @assert length(initial_guess) == length(model_rhs) == length(variables)
+    variable_count = length(variables)
+    _eqs = zeros(length(model_rhs)) .~ model_rhs
+    _nl_system = MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
+    nlsys_func = generate_function(_nl_system, expression=Val{false})[2]
+    _parameter_values = [x.second for x in parameter_values]
+    # f(du,u, _parameter_values) used only for testing
+    jac_expression = generate_jacobian(_nl_system)[2] # second is in-place
+    nlsys_jac = eval(jac_expression)
+    sol = NLsolve.nlsolve((out, x) -> nlsys_func(out, x,  _parameter_values),
+                    (out, x) -> nlsys_jac(out, x,  _parameter_values),
+                    initial_guess)
+    return sol.zeros
+end
+function instantiate_initial_conditions(model, parameter_values)# system::PSY.System)
         #TODO: SolvePowerFlow here for eg_d, eg_q and others if needed.
         _initial_guess = [
             1.0,    #eg_d
@@ -21,8 +37,8 @@ function instantiate_initial_conditions(model)# system::PSY.System)
             0.0,    #M
             0.0,    #L
         ]
-        # TODO: use Nlsolve here properly to get valid initial conditions
-        initial_conditions = Array{Pair}(undef, length(_initial_guess))
+        _initial_conditions = solve_steady_state(_initial_guess, parameter_values)
+        initial_conditions = Array{Pair}(undef, length(_initial_conditions))
         for (ix, val) in enumerate(_initial_guess)
             initial_conditions[ix] = MTK.states(model)[ix] => val
         end
