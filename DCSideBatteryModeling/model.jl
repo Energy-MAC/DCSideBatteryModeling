@@ -77,6 +77,29 @@ function get_internal_model()
         L(t)    # Second term for Pade approx
     end
 
+    # Definition of the variables for non-linear system. Requires https://github.com/SciML/ModelingToolkit.jl/issues/322 to eliminate
+    variables = MTK.@variables begin
+        eg_d #d-axis capacitor filter voltage
+        eg_q #q-axis capacitor filter voltage
+        is_d #d-axis current flowing into filter
+        is_q #q-axis current flowing into filter
+        ig_d #d-axis current flowing into grid
+        ig_q #q-axis current flowing into grid
+        pf   #Filtered active power measurement
+        qf   #Filtered reactive power measurement
+        ξ_d  #d-axis integrator term for outer AC/DC PI controller
+        ξ_q  #q-axis integrator term for outer AC/DC PI controller
+        γ_d  #d-axis integrator term for inner AC/DC PI controller
+        γ_q  #d-axis integrator term for inner AC/DC PI controller
+        vdc  #DC Voltage
+        ibat #Battery Current
+        η    #Integrator term for outer DC/DC PI controller
+        κ    #Integrator term for inner DC/DC PI controller
+        # TODO: Verify in the nomenclature equation is the appropiate for each term of the Pade approximation
+        M    # First term for Pade approx
+        L    # Second term for Pade approx
+    end
+
     # Expressions
     pm = eg_d * ig_d + eg_q * ig_q  # AC Active Power Calculation
     qm = -eg_d * ig_q + eg_q * ig_d # AC Reactive Power Calculation
@@ -97,54 +120,76 @@ function get_internal_model()
     i_in = (vb * ibat - ibat^2 * req) / vdc
     d_dc = (-12 / Ts) * M + kpib * (i_ref - i_in) + kiib * κ
 
-    model = [
+    model_rhs = [
         ### Grid forming equations
         #𝜕eg_d/𝜕t
-        d(eg_d) ~ (ωb / cf) * (is_d - ig_d) + ω_a * ωb * eg_q
+        (ωb / cf) * (is_d - ig_d) + ω_a * ωb * eg_q
         #𝜕eg_q/𝜕t
-        d(eg_q) ~ (ωb / cf) * (is_q - ig_q) - ω_a * ωb * eg_d
+        (ωb / cf) * (is_q - ig_q) - ω_a * ωb * eg_d
         #𝜕is_d/𝜕t
-        d(is_d) ~ (ωb / lf) * (v_md - eg_d) - (rf * ωb / lf) * is_d + ωb * ω_a * is_q
+        (ωb / lf) * (v_md - eg_d) - (rf * ωb / lf) * is_d + ωb * ω_a * is_q
         #𝜕is_q/𝜕t
-        d(is_q) ~ (ωb / lf) * (v_mq - eg_q) - (rf * ωb / lf) * is_q - ωb * ω_a * is_d
+        (ωb / lf) * (v_mq - eg_q) - (rf * ωb / lf) * is_q - ωb * ω_a * is_d
         #𝜕ig_d/𝜕t
-        d(ig_d) ~ (ωb / lt) * (eg_d - v_gd) - (rt * ωb / lt) * ig_d + ωb * ω_a * ig_q
+        (ωb / lt) * (eg_d - v_gd) - (rt * ωb / lt) * ig_d + ωb * ω_a * ig_q
         #𝜕ig_q/𝜕t
-        d(ig_q) ~ (ωb / lt) * (eg_q - v_gq) - (rt * ωb / lt) * ig_q - ωb * ω_a * ig_d
+        (ωb / lt) * (eg_q - v_gq) - (rt * ωb / lt) * ig_q - ωb * ω_a * ig_d
         #𝜕pf/𝜕t
-        d(pf) ~ ωz * (pm - pf)
+        ωz * (pm - pf)
         #𝜕qf/𝜕t
-        d(qf) ~ ωz * (qm - qf)
+        ωz * (qm - qf)
         #𝜕ξ_d/𝜕t
-        d(ξ_d) ~ v_iref_d - eg_d
+        v_iref_d - eg_d
         #𝜕ξ_q/𝜕t
-        d(ξ_q) ~ v_iref_q - eg_q
+        v_iref_q - eg_q
         #𝜕γ_d/𝜕t
-        d(γ_d) ~ i_hat_d - is_d
+        i_hat_d - is_d
         #𝜕γ_q/𝜕t
-        d(γ_q) ~ i_hat_q - is_q
+        i_hat_q - is_q
         ### DC-side equations
         #∂vdc/∂t
-        d(vdc) ~ ωb * ((i_in - p_inv / (2 * vdc)) / (cdc))
+        ωb * ((i_in - p_inv / (2 * vdc)) / (cdc))
         #∂ibat/∂t
-        d(ibat) ~ (ωb / leq) * (vb - req * ibat - (1 - d_dc) * vdc)
+        (ωb / leq) * (vb - req * ibat - (1 - d_dc) * vdc)
         #∂η/∂t
-        d(η) ~ vdcʳ - vdc # Integrator for DC/DC outer PI controller
+        vdcʳ - vdc # Integrator for DC/DC outer PI controller
         #∂κ/dt
-        d(κ) ~ i_ref - i_in # Integrator for DC/DC inner PI controller
+        i_ref - i_in # Integrator for DC/DC inner PI controller
         # ∂M/dt
-        d(M) ~ (-6 / Ts) * M + (-12 / Ts^2) * L + kpib * (i_ref - i_in) + kiib * ibat # First term in Pade approximation
+        (-6 / Ts) * M + (-12 / Ts^2) * L + kpib * (i_ref - i_in) + kiib * ibat # First term in Pade approximation
         # ∂M/dt
-        d(L) ~ M # Second term in Pade approx.
+        M # Second term in Pade approx.
     ]
 
-    return model, states, params
+    # Temporary until SteadyState problems are resolved.
+    model_lhs = [
+    d(eg_d)
+    d(eg_q)
+    d(is_d)
+    d(is_q)
+    d(ig_d)
+    d(ig_q)
+    d(pf)
+    d(qf)
+    d(ξ_d)
+    d(ξ_q)
+    d(γ_d)
+    d(γ_q)
+    d(vdc)
+    d(ibat)
+    d(η)
+    d(κ)
+    d(M)
+    d(L)
+    ]
+
+    return model_lhs, model_rhs, states, variables, params
 end
 
 function get_model()
-    model, states, params = get_internal_model()
+   model_lhs, model_rhs, states, _, params = get_internal_model()
     t = params[1]
-    return MTK.ODESystem(model, t, [states...], [params...][2:end])
+    return MTK.ODESystem(model_lhs .~ model_rhs, t, [states...], [params...][2:end])
 end
 
 function instantiate_model(
@@ -152,7 +197,7 @@ function instantiate_model(
     tspan::Tuple,
     #system::PSY.System,
 )
-    parameters = instantiate_parameters(model) #, system)
-    initial_conditions = instantiate_initial_conditions(model) #, system)
-    return DiffEqBase.ODEProblem(model, initial_conditions, tspan, parameters, jac = true)
+    parameter_values = instantiate_parameters(model) #, system)
+    initial_conditions = instantiate_initial_conditions(model, parameter_values) #, system)
+    return DiffEqBase.ODEProblem(model, initial_conditions, tspan, parameter_values, jac = true)
 end
