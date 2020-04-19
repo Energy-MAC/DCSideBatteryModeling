@@ -2,7 +2,7 @@ function ode_system!(dx, x, p, t)
     pm = x[1] * x[5] + x[2] * x[6]
     qm = -x[1] * x[6] + x[2] * x[5]
     ω_apc = p.ω_ref + p.Dp * (p.p_ref - x[7])
-    v_hat = p.v_ref + p.Dq * (p.q_ref - x[7])
+    v_hat = p.v_ref + p.Dq * (p.q_ref - x[7]) # REF TODO in line 72 of model.jl
     v_iref_d = v_hat - p.rv * x[5] + ω_apc * p.lv * x[6]
     v_iref_q = -p.rv * x[6] - ω_apc * p.lv * x[5]
     i_hat_d = p.kvp * (v_iref_d - x[1]) + p.kvi * x[9] - ω_apc * p.cf * x[2]# + p.kif*x[5]
