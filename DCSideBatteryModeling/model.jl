@@ -1,5 +1,4 @@
-function get_internal_model()
-
+function get_internal_model(::Nothing)
     # Model Parameters
     params = MTK.@parameters begin
         t
@@ -187,7 +186,7 @@ function get_internal_model()
 end
 
 function get_model()
-    model_lhs, model_rhs, states, _, params = get_internal_model()
+    model_lhs, model_rhs, states, _, params = get_internal_model(nothing)
     t = params[1]
     return MTK.ODESystem(model_lhs .~ model_rhs, t, [states...], [params...][2:end])
 end
