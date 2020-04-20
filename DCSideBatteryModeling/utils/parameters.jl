@@ -77,7 +77,6 @@ function instantiate_parameters(model) #, system::PSY.System)
         vʳ => 1 # Get using PSY
         ωʳ => 1
         # TODO: what is 2.02 ?
-        vdcʳ => 2.02 * Ub / Vb_dc # Get using PSY
         # Load at rated voltage
         vl => 1 # Get using PSY
         pl => 0.5 # Get using PSY
@@ -111,6 +110,7 @@ function instantiate_parameters(model) #, system::PSY.System)
         leq => 5e-3 / Lb_dc # Get using PSY
         req => 0.0 / Zb_dc  # Get using PSY
         vb => 1000 / Vb_dc  # Get using PSY
+        vdcʳ => 2.02 * Ub / Vb_dc # Get using PSY
         cdc => 100e-6 / Cb_dc # Get using PSY
         # DC/DC converter controller parameters
         kpvb => 0.6 # Get using PSY
