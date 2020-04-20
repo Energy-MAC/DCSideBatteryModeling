@@ -1,4 +1,4 @@
-using OrdinaryDiffEq
+using OrdinaryDiffEq #Gets the solvers
 using Plots
 include(joinpath(pwd(), "DCSideBatteryModeling", "DCSideBatteryModeling.jl"))
 
