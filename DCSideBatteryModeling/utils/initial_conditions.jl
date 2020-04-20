@@ -14,6 +14,7 @@ function solve_steady_state(initial_guess, parameter_values)
         #(out, x) -> nlsys_jac(out, x, _parameter_values),
         initial_guess,
     )
+    println(sol)
     return sol.zero
 end
 function instantiate_initial_conditions(model, parameter_values)# system::PSY.System)
