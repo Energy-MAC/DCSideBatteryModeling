@@ -1,5 +1,4 @@
-# Cant use import, see https://github.com/SciML/ModelingToolkit.jl/issues/319
-using ModelingToolkit
+using ModelingToolkit # Cant use import, see https://github.com/SciML/ModelingToolkit.jl/issues/319
 import DiffEqBase
 import PowerSystems
 import NLsolve
