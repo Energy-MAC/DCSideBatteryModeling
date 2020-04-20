@@ -1,6 +1,6 @@
 
 function solve_steady_state(initial_guess, parameter_values)
-    _, model_rhs, _, variables, params = get_internal_model()
+    _, model_rhs, _, variables, params = get_internal_model(nothing)
     @assert length(initial_guess) == length(model_rhs) == length(variables)
     variable_count = length(variables)
     _eqs = zeros(length(model_rhs)) .~ model_rhs
