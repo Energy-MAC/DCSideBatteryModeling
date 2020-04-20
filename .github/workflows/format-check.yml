@@ -30,6 +30,7 @@ jobs:
         run: |
           julia -e '
           out = Cmd(`git diff --name-only`) |> read |> String
+          @show out
           if out == ""
               exit(0)
           else
