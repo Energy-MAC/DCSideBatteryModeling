@@ -105,7 +105,7 @@ function get_internal_model(::Nothing)
     ω_a = ωʳ + Dp * (pʳ - pf)  # Active Power Drop
     # TODO: Original model had pf here. Verify
     v_hat = vʳ + Dq * (qʳ - qf) # Reactive Power Drop
-    v_iref_d = v_hat - rv * ig_d + ω_a * lv * pf # Inner voltage controller d PI
+    v_iref_d = v_hat - rv * ig_d + ω_a * lv * ig_q # Inner voltage controller d PI
     v_iref_q = -rv * pf - ω_a * lv * ig_d # Inner voltage controller q PI
     i_hat_d = kvp * (v_iref_d - eg_d) + kvi * ξ_d - ω_a * cf * eg_q # Inner current controller d PI
     i_hat_q = kvp * (v_iref_d - eg_q) + kvi * ξ_q + ω_a * cf * eg_d # Inner current controller q PI
