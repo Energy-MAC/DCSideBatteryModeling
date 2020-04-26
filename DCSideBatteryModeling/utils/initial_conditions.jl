@@ -7,11 +7,10 @@ function solve_steady_state(initial_guess, parameter_values)
     _nl_system = MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
     nlsys_func = MTK.generate_function(_nl_system, expression = Val{false})[2]
     _parameter_values = [x.second for x in parameter_values]
-    # Requires https://github.com/SciML/ModelingToolkit.jl/issues/323 to work
-    #nlsys_jac = MTK.generate_jacobian(_nl_system, expression = Val{false})[2] # second is in-place
+    nlsys_jac = MTK.generate_jacobian(_nl_system, expression = Val{false})[2] # second is in-place
     sol = NLsolve.nlsolve(
         (out, x) -> nlsys_func(out, x, _parameter_values),
-        #(out, x) -> nlsys_jac(out, x, _parameter_values),
+        (out, x) -> nlsys_jac(out, x, _parameter_values),
         initial_guess,
     )
     println(sol)
