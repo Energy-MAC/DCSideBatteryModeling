@@ -47,7 +47,7 @@ function instantiate_parameters(model) #, system::PSY.System)
     kpvb,
     kpib,
     kiib,
-    Ts = MTK.parameters(model) # Sampling time = parameters(model)
+    Ts = MTK.parameters(model)
 
     Ub = 690 # Get using PSY
     fb = 60 # Get using PSY.
