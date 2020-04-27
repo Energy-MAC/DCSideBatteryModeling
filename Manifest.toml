@@ -89,9 +89,9 @@ version = "0.7.5"
 
 [[ColorSchemes]]
 deps = ["ColorTypes", "Colors", "FixedPointNumbers", "Random", "StaticArrays"]
-git-tree-sha1 = "cc14eea7a12210b08b76a411b303310462a3a2ca"
+git-tree-sha1 = "7a15e3690529fd1042f0ab954dff7445b1efc8a5"
 uuid = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
-version = "3.8.0"
+version = "3.9.0"
 
 [[ColorTypes]]
 deps = ["FixedPointNumbers", "Random"]
@@ -320,9 +320,9 @@ version = "0.1.2"
 
 [[InfrastructureSystems]]
 deps = ["CSV", "DataFrames", "Dates", "HDF5", "InteractiveUtils", "JSON", "JSON2", "Logging", "Mustache", "PrettyTables", "Test", "TimeSeries", "UUIDs", "YAML"]
-path = "../../.julia/dev/InfrastructureSystems"
+git-tree-sha1 = "2ad867e21615131f6e0410592035966a2ae9390b"
 uuid = "2cd47ed4-ca9b-11e9-27f2-ab636a7671f1"
-version = "0.6.2"
+version = "0.6.3"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
@@ -576,9 +576,9 @@ version = "0.5.3"
 
 [[PowerSystems]]
 deps = ["CSV", "DataFrames", "Dates", "DocStringExtensions", "InfrastructureSystems", "InteractiveUtils", "JSON", "JSON2", "LinearAlgebra", "Logging", "SparseArrays", "TimeSeries", "UUIDs", "YAML"]
-path = "/Users/jdlara/.julia/dev/PowerSystems"
+git-tree-sha1 = "77bcfe45e95a7d36e0b5ecce7ef7bfdc80042ef0"
 uuid = "bcd98974-b02a-5e2f-9ee0-a103f5c450dd"
-version = "0.15.2"
+version = "0.16.0"
 
 [[PrettyPrint]]
 git-tree-sha1 = "21e1f88cb73589ec39a1181f77eb444b5276151e"
