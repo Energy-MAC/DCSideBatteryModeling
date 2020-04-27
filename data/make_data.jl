@@ -24,42 +24,42 @@ battery = GenericBattery(
 add_component!(omib_sys, battery)
 
 res = solve_powerflow!(omib_sys, nlsolve)
-
 ###### Converter Data ######
 converter() = AverageConverter(
-    690.0, #Rated Voltage
-    2.75,  #Rated MVA
+    v_rated = 690.0,
+    s_rated = 2.75,
 )
 ###### DC Source Data ######
-dc_source() = FixedDCSource(600.0) #Needs to be improved for this paper.
+dc_source() = FixedDCSource(voltage = 600.0) #Not in the original data, guessed.
 
 ###### Filter Data ######
 filter() = LCLFilter(
-    0.08, #Series inductance lf in pu
-    0.003, #Series resitance rf in pu
-    0.074, #Shunt capacitance cf in pu
-    0.2, #Series ractance rg to grid connection
-    0.01, #Series resistance lg to grid connection
+    lf = 0.08,
+    rf = 0.003,
+    cf = 0.074,
+    lg = 0.2,
+    rg = 0.01,
 )
 
 ###### Outer Control ######
-
-# Needs to be implemented
+function outer_control()
+    #Need to implement proper outer control Data in PSY
+    return OuterControl(virtual_inertia(), reactive_droop())
+end
 
 ######## Inner Control ######
 inner_control() = CurrentControl(
-    0.59, #kpv:: Voltage controller proportional gain
-    736.0, #kiv:: Voltage controller integral gain
-    0.0, #kffv:: Binary variable enabling the voltage feed-forward in output of current controllers
-    0.0, #rv:: Virtual resistance in pu
-    0.2, #lv: Virtual inductance in pu
-    1.27, #kpc:: Current controller proportional gain
-    14.3, #kiv:: Current controller integral gain
-    0.0, #kffi:: Binary variable enabling the current feed-forward in output of current controllers
-    50.0, #ωad:: Active damping low pass filter cut-off frequency
-    0.2, #kad:: Active damping gain
+    kpv = 0.59,     #Voltage controller proportional gain
+    kiv = 736.0,    #Voltage controller integral gain
+    kffv = 0.0,     #Binary variable enabling the voltage feed-forward in output of current controllers
+    rv = 0.0,       #Virtual resistance in pu
+    lv = 0.2,       #Virtual inductance in pu
+    kpc = 1.27,     #Current controller proportional gain
+    kic = 14.3,     #Current controller integral gain
+    kffi = 0.0,     #Binary variable enabling the current feed-forward in output of current controllers
+    ωad = 50.0,     #Active damping low pass filter cut-off frequency
+    kad = 0.2,
 )
-
 inverter = PSY.DynamicInverter(
         1, #Number
         "Storage", #name
