@@ -205,7 +205,7 @@ function instantiate_model(
         initial_conditions,
         tspan,
         parameter_values,
-        jac = true,
+        jac = false,
     )
     return
 end

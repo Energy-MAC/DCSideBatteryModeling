@@ -3,10 +3,21 @@ using Plots
 include(joinpath(pwd(), "DCSideBatteryModeling", "DCSideBatteryModeling.jl"))
 
 # Returns Generic ODE system
-model = get_model()
+model = get_model();
 ode_prob = instantiate_model(model, (0.0, 0.1))
-sol1 = solve(ode_prob, Rosenbrock23()); #Use Solver for stiff problems
+sol1 = solve(ode_prob, TRBDF2()); #Use Solver for stiff problems
 plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
+
+
+# WIP functions
+_parameter_values = instantiate_parameters(model) #, system)
+parameter_values = [x.second for x in _parameter_values]
+jac = get_jacobian_function();
+
+param_eval = (out, params) -> jac(out, ode_prob.u0, params)
+n= length(ode_prob.u0)
+J = zeros(n, n)
+param_eval(J, parameter_values)
 
 #=
 parameters.pl = 0.6;
