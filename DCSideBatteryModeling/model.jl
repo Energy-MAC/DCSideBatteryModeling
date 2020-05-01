@@ -38,17 +38,19 @@ function get_internal_model(::Nothing)
         rv
         lv
         # DC Source Parameters
-        leq
-        req
-        vb
-        cdc
+        leq     # Equivalent inductance (i.e. battery inductance and DC/DC converter inductance)
+        req     # Equivalent resistance 
+        vb      # Battery Voltage
+        cdc     # Dc-side capacitance
         # DC/DC converter controller parameters
         vdcʳ    # DC Voltage reference
-        kivb
-        kpvb
-        kpib
-        kiib
-        Ts # Sampling time
+        kpvb    # DC/DC Voltage control integral gain
+        kivb    # DC/DC Voltage control propotional gain
+        kpib    # DC/DC Current control propotional gain
+        kiib    # DC/DC Current control Integral gain
+        a1      # First coefficient of Pade approximation
+        a2      # Second co-efficient of Pade approxmiation  
+        Ts      # DC/DC controller time delay    
     end
 
     MTK.@derivatives d'~t
@@ -105,19 +107,19 @@ function get_internal_model(::Nothing)
     ω_a = ωʳ + Dp * (pʳ - pf)  # Active Power Drop
     # TODO: Original model had pf here. Verify
     v_hat = vʳ + Dq * (qʳ - qf) # Reactive Power Drop
-    v_iref_d = v_hat - rv * ig_d + ω_a * lv * ig_q # Inner voltage controller d PI
-    v_iref_q = -rv * ig_q - ω_a * lv * ig_d # Inner voltage controller q PI
-    i_hat_d = kvp * (v_iref_d - eg_d) + kvi * ξ_d - ω_a * cf * eg_q # Inner current controller d PI
-    i_hat_q = kvp * (v_iref_d - eg_q) + kvi * ξ_q + ω_a * cf * eg_d # Inner current controller q PI
-    v_md = kip * (i_hat_d - is_d) + kii * γ_d - ω_a * lf * is_q
-    v_mq = kip * (i_hat_q - is_q) + kii * γ_q + ω_a * lf * is_d
-    p_inv = v_md * is_d + v_mq * is_q
-    q_inv = -v_md * is_q + v_mq * is_d
+    v_iref_d = v_hat - rv * ig_d + ω_a * lv * ig_q # d-axis virtual impedance equation
+    v_iref_q = -rv * ig_q - ω_a * lv * ig_d # q-axis virtual impedance equation
+    i_hat_d = kvp * (v_iref_d - eg_d) + kvi * ξ_d - ω_a * cf * eg_q # Inner voltage controller d PI
+    i_hat_q = kvp * (v_iref_q - eg_q) + kvi * ξ_q + ω_a * cf * eg_d # Inner voltage controller q PI
+    v_md = kip * (i_hat_d - is_d) + kii * γ_d - ω_a * lf * is_q # Inner current controller d PI
+    v_mq = kip * (i_hat_q - is_q) + kii * γ_q + ω_a * lf * is_d # Inner current controller q PI
+    p_inv = v_md * is_d + v_mq * is_q # Active power drawn from inverter
+    q_inv = -v_md * is_q + v_mq * is_d # Reactive power drawn from inverter
     v_gd = (vl^2 / pl) * ig_d
     v_gq = (vl^2 / pl) * ig_q
     i_ref = kpvb * (vdcʳ - vdc) + kivb * η
     i_in = (vb * ibat - ibat^2 * req) / vdc
-    d_dc = (-12 / Ts) * M + kpib * (i_ref - i_in) + kiib * κ
+    d_dc = (-a2 / Ts) * M + kpib * (i_ref - i_in) + kiib * κ
 
     model_rhs = [
         ### Grid forming equations
@@ -148,14 +150,14 @@ function get_internal_model(::Nothing)
         ### DC-side equations
         #∂vdc/∂t
         ωb * ((i_in - p_inv / (2 * vdc)) / (cdc))
-        #∂ibat/∂t
+        #∂ib/∂t
         (ωb / leq) * (vb - req * ibat - (1 - d_dc) * vdc)
         #∂η/∂t
         vdcʳ - vdc # Integrator for DC/DC outer PI controller
         #∂κ/dt
         i_ref - i_in # Integrator for DC/DC inner PI controller
         # ∂M/dt
-        (-6 / Ts) * M + (-12 / Ts^2) * L + kpib * (i_ref - i_in) + kiib * ibat # First term in Pade approximation
+        (-a1 / Ts) * M + (-a2 / Ts^2) * L + kpib * (i_ref - i_in) + kiib * ibat # First term in Pade approximation
         # ∂M/dt
         M # Second term in Pade approx.
     ]
@@ -198,11 +200,12 @@ function instantiate_model(
 )
     parameter_values = instantiate_parameters(model) #, system)
     initial_conditions = instantiate_initial_conditions(model, parameter_values) #, system)
-    return DiffEqBase.ODEProblem(
-        model,
-        initial_conditions,
-        tspan,
-        parameter_values,
-        jac = true,
-    )
+    #return DiffEqBase.ODEProblem(
+    #    model,
+    #    initial_conditions,
+    #    tspan,
+    #    parameter_values,
+    #    jac = true,
+    #)
+    return initial_conditions
 end

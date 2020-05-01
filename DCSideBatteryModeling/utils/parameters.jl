@@ -28,26 +28,28 @@ function instantiate_parameters(model) #, system::PSY.System)
     # SRF Current Control
     kip,     # Current control propotional gain
     kii,     # Current control integral gain
-    kffi,    # Current control differential gain
+    kffi,    # Current control feed-forward gain
     # SRF Voltage Control
     kvp,     # Voltage control propotional gain
     kvi,     # Voltage control integral gain
-    kffv,    # Voltage control differential gain
+    kffv,    # Voltage control feed-forward  gain
     # Virtual Impedance
     rv,
     lv,
     # DC Source Parameters
-    leq,
-    req,
-    vb,
-    cdc,
+    leq,     # Equivalent inductance (i.e. battery inductance and DC/DC converter inductance)
+    req,     # Equivalent resistance 
+    vb,      # Battery Voltage
+    cdc,     # Dc-side capacitance
     # DC/DC converter controller parameters
     vdcʳ,    # DC Voltage reference
-    kivb,
-    kpvb,
-    kpib,
-    kiib,
-    Ts = MTK.parameters(model)
+    kpvb,    # DC/DC Voltage control integral gain
+    kivb,    # DC/DC Voltage control propotional gain
+    kpib,    # DC/DC Current control propotional gain
+    kiib,    # DC/DC Current control Integral gain
+    a1,      # First coefficient of Pade approximation
+    a2,      # Second co-efficient of Pade approxmiation  
+    Ts = MTK.parameters(model) ## DC/DC controller time delay
 
     Ub = 690 # Get using PSY
     fb = 60 # Get using PSY.
@@ -110,13 +112,15 @@ function instantiate_parameters(model) #, system::PSY.System)
         leq => 5e-3 / Lb_dc # Get using PSY
         req => 0.0 / Zb_dc  # Get using PSY
         vb => 1000 / Vb_dc  # Get using PSY
-        vdcʳ => 2.02 * Ub / Vb_dc # Get using PSY
         cdc => 100e-6 / Cb_dc # Get using PSY
         # DC/DC converter controller parameters
+        vdcʳ => 1.01 # Get using PSY
         kpvb => 0.6 # Get using PSY
         kivb => 4   # Get using PSY
         kpib => 0.3863 # Get using PSY
         kiib => 10.34 # Get using PSY
+        a1 => 6    # First coefficient of Pade approximation
+        a2 => 12    # Second co-efficient of Pade approxmiation  
         Ts => 1 / (3.2e3) # Get using PSY
     ]
     return p
