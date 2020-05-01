@@ -39,7 +39,7 @@ function get_internal_model(::Nothing)
         lv
         # DC Source Parameters
         leq     # Equivalent inductance (i.e. battery inductance and DC/DC converter inductance)
-        req     # Equivalent resistance 
+        req     # Equivalent resistance
         vb      # Battery Voltage
         cdc     # Dc-side capacitance
         # DC/DC converter controller parameters
@@ -49,8 +49,8 @@ function get_internal_model(::Nothing)
         kpib    # DC/DC Current control propotional gain
         kiib    # DC/DC Current control Integral gain
         a1      # First coefficient of Pade approximation
-        a2      # Second co-efficient of Pade approxmiation  
-        Ts      # DC/DC controller time delay    
+        a2      # Second co-efficient of Pade approxmiation
+        Ts      # DC/DC controller time delay
     end
 
     MTK.@derivatives d'~t
@@ -200,12 +200,12 @@ function instantiate_model(
 )
     parameter_values = instantiate_parameters(model) #, system)
     initial_conditions = instantiate_initial_conditions(model, parameter_values) #, system)
-    #return DiffEqBase.ODEProblem(
-    #    model,
-    #    initial_conditions,
-    #    tspan,
-    #    parameter_values,
-    #    jac = true,
-    #)
-    return initial_conditions
+    return DiffEqBase.ODEProblem(
+        model,
+        initial_conditions,
+        tspan,
+        parameter_values,
+        jac = true,
+    )
+    return
 end
