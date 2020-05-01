@@ -20,9 +20,9 @@ version = "0.0.4"
 
 [[ArrayInterface]]
 deps = ["LinearAlgebra", "Requires", "SparseArrays"]
-git-tree-sha1 = "9b83ca9f3fa064f2a4627f6e39a15c6fb0b0ae17"
+git-tree-sha1 = "649c08a5a3a513f4662673d3777fe6ccb4df9f5d"
 uuid = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
-version = "2.8.6"
+version = "2.8.7"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
@@ -576,9 +576,9 @@ version = "0.5.3"
 
 [[PowerSystems]]
 deps = ["CSV", "DataFrames", "Dates", "DocStringExtensions", "InfrastructureSystems", "InteractiveUtils", "JSON", "JSON2", "LinearAlgebra", "Logging", "SparseArrays", "TimeSeries", "UUIDs", "YAML"]
-git-tree-sha1 = "77bcfe45e95a7d36e0b5ecce7ef7bfdc80042ef0"
+git-tree-sha1 = "e10cb9b6de7236968a4e291f98b14f01a78a4165"
 uuid = "bcd98974-b02a-5e2f-9ee0-a103f5c450dd"
-version = "0.16.0"
+version = "0.17.0"
 
 [[PrettyPrint]]
 git-tree-sha1 = "21e1f88cb73589ec39a1181f77eb444b5276151e"
@@ -698,10 +698,10 @@ deps = ["LinearAlgebra", "Random"]
 uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[SparseDiffTools]]
-deps = ["Adapt", "ArrayInterface", "Compat", "DataStructures", "FiniteDiff", "ForwardDiff", "InteractiveUtils", "LightGraphs", "LinearAlgebra", "Requires", "SparseArrays", "VertexSafeGraphs"]
-git-tree-sha1 = "132c55cf302f1faf1d0d1c8205453764066cb018"
+deps = ["Adapt", "ArrayInterface", "Compat", "DataStructures", "FiniteDiff", "ForwardDiff", "LightGraphs", "LinearAlgebra", "Requires", "SparseArrays", "VertexSafeGraphs"]
+git-tree-sha1 = "b76129931f1f21eaebecd9f1db915cc4961a4908"
 uuid = "47a9eef4-7e08-11e9-0b38-333d64bd3804"
-version = "1.6.0"
+version = "1.7.1"
 
 [[SpecialFunctions]]
 deps = ["OpenSpecFun_jll"]
