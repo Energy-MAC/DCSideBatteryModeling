@@ -5,7 +5,7 @@ include(joinpath(pwd(), "DCSideBatteryModeling", "DCSideBatteryModeling.jl"))
 # Returns Generic ODE system
 model = get_model()
 ode_prob = instantiate_model(model, (0.0, 0.1))
-sol1 = solve(ode_prob, Tsit5())
+sol1 = solve(ode_prob, Rosenbrock23()); #Use Solver for stiff problems
 plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
 
 #=
