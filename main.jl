@@ -13,7 +13,7 @@ ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
 sol1 = solve(ode_prob, Rosenbrock23())
 plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
 
-_parameter_values = instantiate_parameters(omib_sys)
+parameter_values = instantiate_parameters(omib_sys)
 M = instantiate_model(omib_sys)
 u0 = M(_parameter_values)
 
@@ -28,13 +28,7 @@ variable_count = length(variables)
 _eqs = zeros(length(model_rhs)) .~ model_rhs
 _nl_system = MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
 
-# This works
-nlsys_jac = MTK.generate_jacobian(_nl_system)[2] # second is in-place
-jac = eval(nlsys_jac)
-param_eval = (out, params) -> jac(out, ode_prob.u0, params)
-n= length(ode_prob.u0)
-J = zeros(n, n)
-param_eval(J, parameter_values)
+
 
 # This causes StackOverflow
 jac = MTK.generate_jacobian(_nl_system, expression = Val{false})[2] # second is in-place
@@ -42,10 +36,7 @@ param_eval = (out, params) -> jac(out, ode_prob.u0, params)
 n= length(ode_prob.u0)
 J = zeros(n, n)
 param_eval(J, parameter_values)
-param_eval = (out, params) -> jac(out, ode_prob.u0, params)
-n= length(ode_prob.u0)
-J = zeros(n, n)
-param_eval(J, parameter_values)
+
 
 #=
 parameters.pl = 0.6;
