@@ -187,25 +187,16 @@ function get_internal_model(::Nothing)
     return model_lhs, model_rhs, states, variables, params
 end
 
-function get_model()
+function get_ode_system()
     model_lhs, model_rhs, states, _, params = get_internal_model(nothing)
     t = params[1]
-    return MTK.ODESystem(model_lhs .~ model_rhs, t, [states...], [params...][2:end])
+    _eqs = model_lhs .~ model_rhs
+    return MTK.ODESystem(_eqs, t, [states...], [params...][2:end])
 end
 
-function instantiate_model(
-    model,
-    tspan::Tuple,
-    #system::PSY.System,
-)
-    parameter_values = instantiate_parameters(model) #, system)
-    initial_conditions = instantiate_initial_conditions(model, parameter_values) #, system)
-    return DiffEqBase.ODEProblem(
-        model,
-        initial_conditions,
-        tspan,
-        parameter_values,
-        jac = false,
-    )
-    return
+function get_nonlinear_system()
+    _, model_rhs, _, variables, params = get_internal_model(nothing)
+    variable_count = length(variables)
+    _eqs = zeros(length(model_rhs)) .~ model_rhs
+    return MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
 end
