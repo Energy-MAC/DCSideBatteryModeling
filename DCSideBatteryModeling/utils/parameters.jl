@@ -1,5 +1,5 @@
 
-function instantiate_parameters(model) #, system::PSY.System)
+function instantiate_parameters(system::PSY.System, model = get_nonlinear_system())
     # TODO: Automate better with PSY getter functions
     # AC side quantities
     ωb,      # Base Frequency
@@ -38,7 +38,7 @@ function instantiate_parameters(model) #, system::PSY.System)
     lv,
     # DC Source Parameters
     leq,     # Equivalent inductance (i.e. battery inductance and DC/DC converter inductance)
-    req,     # Equivalent resistance 
+    req,     # Equivalent resistance
     vb,      # Battery Voltage
     cdc,     # Dc-side capacitance
     # DC/DC converter controller parameters
@@ -48,7 +48,7 @@ function instantiate_parameters(model) #, system::PSY.System)
     kpib,    # DC/DC Current control propotional gain
     kiib,    # DC/DC Current control Integral gain
     a1,      # First coefficient of Pade approximation
-    a2,      # Second co-efficient of Pade approxmiation  
+    a2,      # Second co-efficient of Pade approxmiation
     Ts = MTK.parameters(model) ## DC/DC controller time delay
 
     Ub = 690 # Get using PSY
@@ -120,7 +120,7 @@ function instantiate_parameters(model) #, system::PSY.System)
         kpib => 0.3863 # Get using PSY
         kiib => 10.34 # Get using PSY
         a1 => 6    # First coefficient of Pade approximation
-        a2 => 12    # Second co-efficient of Pade approxmiation  
+        a2 => 12    # Second co-efficient of Pade approxmiation
         Ts => 1 / (3.2e3) # Get using PSY
     ]
     return p
