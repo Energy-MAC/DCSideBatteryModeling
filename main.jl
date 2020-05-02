@@ -8,11 +8,6 @@ include(joinpath(pwd(), "DCSideBatteryModeling", "DCSideBatteryModeling.jl"))
 # Load Data with PF solution from file
 omib_sys = System(joinpath(pwd(), "data", "OMIB_inverterDCside.json"))
 
-# Returns Generic ODE system and solves
-ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
-sol1 = solve(ode_prob, Rosenbrock23())
-plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
-
 _parameter_values = instantiate_parameters(omib_sys)
 M = instantiate_model(omib_sys)
 u0 = M(_parameter_values)
@@ -21,31 +16,23 @@ u0 = M(_parameter_values)
 #jac = instantiate_jacobian(M)
 #jac(M)
 
-# WIP Jacobian Experiments
-
-_, model_rhs, _, variables, params = get_internal_model(nothing)
-variable_count = length(variables)
-_eqs = zeros(length(model_rhs)) .~ model_rhs
-_nl_system = MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
-
-# This works
-nlsys_jac = MTK.generate_jacobian(_nl_system)[2] # second is in-place
-jac = eval(nlsys_jac)
-param_eval = (out, params) -> jac(out, ode_prob.u0, params)
-n= length(ode_prob.u0)
+# WIP Jacobian Experiments. This is the function isntantiate evaluated in main to avoid
+# world age errors
+jac_exp = get_jacobian_expression()
+_jac = eval(jac_exp)
+jac_eval = (out, u0, params) -> _jac(out, u0, params)
+param_eval = (out, params) -> _jac(out, M.u0, params)
+n = length(M.u0)
 J = zeros(n, n)
-param_eval(J, parameter_values)
+_parameter_values = [x.second for x in M.parameters]
+param_eval(J, _parameter_values)
+jac = ModelJacobian(jac_eval, J)
+jac(M)
 
-# This causes StackOverflow
-jac = MTK.generate_jacobian(_nl_system, expression = Val{false})[2] # second is in-place
-param_eval = (out, params) -> jac(out, ode_prob.u0, params)
-n= length(ode_prob.u0)
-J = zeros(n, n)
-param_eval(J, parameter_values)
-param_eval = (out, params) -> jac(out, ode_prob.u0, params)
-n= length(ode_prob.u0)
-J = zeros(n, n)
-param_eval(J, parameter_values)
+# Returns Generic ODE system and solves
+ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
+sol1 = solve(ode_prob, Rosenbrock23())
+plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
 
 #=
 parameters.pl = 0.6;
