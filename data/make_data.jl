@@ -60,7 +60,7 @@ inner_control() = CurrentControl(
     ωad = 50.0,     #Active damping low pass filter cut-off frequency
     kad = 0.2,
 )
-inverter = PSY.DynamicInverter(
+inverter = DynamicInverter(
         1, #Number
         "Storage", #name
         slack_bus, #bus
@@ -76,3 +76,5 @@ inverter = PSY.DynamicInverter(
         no_pll(), #pll
         filter(),
     ) #filter
+
+to_json(omib_sys, joinpath(pwd(), "data/OMIB_DCBattery.json"))
