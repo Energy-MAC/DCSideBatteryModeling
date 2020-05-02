@@ -9,10 +9,6 @@ ode_prob = instantiate_model(model, (0.0, 0.1))
 sol1 = solve(ode_prob, TRBDF2()); #Use Solver for stiff problems
 plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
 
-#_parameter_values = instantiate_parameters(model) #, system)
-#parameter_values = [x.second for x in _parameter_values]
-#jac = get_jacobian_function();
-
 # WIP Jacobian Experiments
 _, model_rhs, _, variables, params = get_internal_model(nothing)
 variable_count = length(variables)
