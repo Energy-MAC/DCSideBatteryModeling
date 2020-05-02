@@ -1,14 +1,28 @@
 using OrdinaryDiffEq #Gets the solvers
 using Plots
-include(joinpath(pwd(), "DCSideBatteryModeling", "DCSideBatteryModeling.jl"))
+using PowerSystems
 
-# Returns Generic ODE system
-model = get_model();
-ode_prob = instantiate_model(model, (0.0, 0.1))
-sol1 = solve(ode_prob, TRBDF2()); #Use Solver for stiff problems
+include(joinpath(pwd(), "DCSideBatteryModeling", "DCSideBatteryModeling.jl"))
+# Only need to run this line to re-generate the system data
+#include(joinpath(pwd(), "data","make_data.jl"))
+# Load Data with PF solution from file
+omib_sys = System(joinpath(pwd(), "data", "OMIB_inverterDCside.json"))
+
+# Returns Generic ODE system and solves
+ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
+sol1 = solve(ode_prob, Rosenbrock23())
 plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
 
+_parameter_values = instantiate_parameters(omib_sys)
+M = instantiate_model(omib_sys)
+u0 = M(_parameter_values)
+
+# The use of these methods causes StackOverflow
+#jac = instantiate_jacobian(M)
+#jac(M)
+
 # WIP Jacobian Experiments
+
 _, model_rhs, _, variables, params = get_internal_model(nothing)
 variable_count = length(variables)
 _eqs = zeros(length(model_rhs)) .~ model_rhs
