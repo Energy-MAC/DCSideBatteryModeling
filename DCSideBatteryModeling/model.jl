@@ -73,7 +73,6 @@ function get_internal_model(::Nothing)
         ibat(t) #Battery Current
         η(t)    #Integrator term for outer DC/DC PI controller
         κ(t)    #Integrator term for inner DC/DC PI controller
-        # TODO: Verify in the nomenclature equation is the appropiate for each term of the Pade approximation
         M(t)    # First term for Pade approx
         L(t)    # Second term for Pade approx
     end
@@ -96,7 +95,6 @@ function get_internal_model(::Nothing)
         ibat #Battery Current
         η    #Integrator term for outer DC/DC PI controller
         κ    #Integrator term for inner DC/DC PI controller
-        # TODO: Verify in the nomenclature equation is the appropiate for each term of the Pade approximation
         M    # First term for Pade approx
         L    # Second term for Pade approx
     end
@@ -105,7 +103,6 @@ function get_internal_model(::Nothing)
     pm = eg_d * ig_d + eg_q * ig_q  # AC Active Power Calculation
     qm = -eg_d * ig_q + eg_q * ig_d # AC Reactive Power Calculation
     ω_a = ωʳ + Dp * (pʳ - pf)  # Active Power Drop
-    # TODO: Original model had pf here. Verify
     v_hat = vʳ + Dq * (qʳ - qf) # Reactive Power Drop
     v_iref_d = v_hat - rv * ig_d + ω_a * lv * ig_q # d-axis virtual impedance equation
     v_iref_q = -rv * ig_q - ω_a * lv * ig_d # q-axis virtual impedance equation
