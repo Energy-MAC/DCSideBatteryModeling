@@ -38,7 +38,7 @@ function instantiate_model(system::PSY.System; solve_powerflow = false)
         0.0,    #κ
         0.0,    #M
         0.0,    #L
-        ]
+    ]
     parameter_values = instantiate_parameters(system, nl_sys)
     M = ModelOperatingPoint(sys_f, initial_guess, parameter_values)
     M()
