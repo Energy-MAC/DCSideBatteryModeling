@@ -13,7 +13,8 @@ ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
 sol1 = solve(ode_prob, Rosenbrock23())
 plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
 
-parameter_values = instantiate_parameters(omib_sys)
+_parameter_values = instantiate_parameters(omib_sys)
+parameter_values = [x.second for x in _parameter_values]
 M = instantiate_model(omib_sys)
 u0 = M(_parameter_values)
 
@@ -35,7 +36,13 @@ jac = MTK.generate_jacobian(_nl_system, expression = Val{false})[2] # second is 
 param_eval = (out, params) -> jac(out, ode_prob.u0, params)
 n= length(ode_prob.u0)
 J = zeros(n, n)
+
+@show ode_prob.u0
+@show parameter_values
+
 param_eval(J, parameter_values)
+
+
 
 
 #=
