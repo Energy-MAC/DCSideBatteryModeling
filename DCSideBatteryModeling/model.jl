@@ -39,7 +39,7 @@ function get_internal_model(::Nothing)
         lv
         # DC Source Parameters
         leq     # Equivalent inductance (i.e. battery inductance and DC/DC converter inductance)
-        req     # Equivalent resistance 
+        req     # Equivalent resistance
         vb      # Battery Voltage
         cdc     # Dc-side capacitance
         # DC/DC converter controller parameters
@@ -49,8 +49,8 @@ function get_internal_model(::Nothing)
         kpib    # DC/DC Current control propotional gain
         kiib    # DC/DC Current control Integral gain
         a1      # First coefficient of Pade approximation
-        a2      # Second co-efficient of Pade approxmiation  
-        Ts      # DC/DC controller time delay    
+        a2      # Second co-efficient of Pade approxmiation
+        Ts      # DC/DC controller time delay
     end
 
     MTK.@derivatives d'~t
@@ -73,7 +73,6 @@ function get_internal_model(::Nothing)
         ibat(t) #Battery Current
         η(t)    #Integrator term for outer DC/DC PI controller
         κ(t)    #Integrator term for inner DC/DC PI controller
-        # TODO: Verify in the nomenclature equation is the appropiate for each term of the Pade approximation
         M(t)    # First term for Pade approx
         L(t)    # Second term for Pade approx
     end
@@ -96,7 +95,6 @@ function get_internal_model(::Nothing)
         ibat #Battery Current
         η    #Integrator term for outer DC/DC PI controller
         κ    #Integrator term for inner DC/DC PI controller
-        # TODO: Verify in the nomenclature equation is the appropiate for each term of the Pade approximation
         M    # First term for Pade approx
         L    # Second term for Pade approx
     end
@@ -105,7 +103,6 @@ function get_internal_model(::Nothing)
     pm = eg_d * ig_d + eg_q * ig_q  # AC Active Power Calculation
     qm = -eg_d * ig_q + eg_q * ig_d # AC Reactive Power Calculation
     ω_a = ωʳ + Dp * (pʳ - pf)  # Active Power Drop
-    # TODO: Original model had pf here. Verify
     v_hat = vʳ + Dq * (qʳ - qf) # Reactive Power Drop
     v_iref_d = v_hat - rv * ig_d + ω_a * lv * ig_q # d-axis virtual impedance equation
     v_iref_q = -rv * ig_q - ω_a * lv * ig_d # q-axis virtual impedance equation
@@ -187,25 +184,16 @@ function get_internal_model(::Nothing)
     return model_lhs, model_rhs, states, variables, params
 end
 
-function get_model()
+function get_ode_system()
     model_lhs, model_rhs, states, _, params = get_internal_model(nothing)
     t = params[1]
-    return MTK.ODESystem(model_lhs .~ model_rhs, t, [states...], [params...][2:end])
+    _eqs = model_lhs .~ model_rhs
+    return MTK.ODESystem(_eqs, t, [states...], [params...][2:end])
 end
 
-function instantiate_model(
-    model,
-    tspan::Tuple,
-    #system::PSY.System,
-)
-    parameter_values = instantiate_parameters(model) #, system)
-    initial_conditions = instantiate_initial_conditions(model, parameter_values) #, system)
-    #return DiffEqBase.ODEProblem(
-    #    model,
-    #    initial_conditions,
-    #    tspan,
-    #    parameter_values,
-    #    jac = true,
-    #)
-    return initial_conditions
+function get_nonlinear_system()
+    _, model_rhs, _, variables, params = get_internal_model(nothing)
+    variable_count = length(variables)
+    _eqs = zeros(length(model_rhs)) .~ model_rhs
+    return MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
 end
