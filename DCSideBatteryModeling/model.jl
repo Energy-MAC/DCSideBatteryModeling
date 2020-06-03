@@ -1282,7 +1282,7 @@ function dae_model_2nd_order(::Nothing)
         E    # Second term for Pade approx
         d_dc
         i_in
-        v_convA scalar function is a function whose result or output is a scalar quantity. The output is one-dimensional. In other words, the co-domain of the function is the set of real numbers, As opposed to this, a vector function is a function whose result or output is a vector quantity.
+        v_conv
     end
 
     # Expressions
