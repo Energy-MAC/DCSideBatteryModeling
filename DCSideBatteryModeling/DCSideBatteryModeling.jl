@@ -2,7 +2,6 @@ using ModelingToolkit # Cant use import, see https://github.com/SciML/ModelingTo
 import DiffEqBase
 import PowerSystems
 import NLsolve
-
 const MTK = ModelingToolkit
 const PSY = PowerSystems
 

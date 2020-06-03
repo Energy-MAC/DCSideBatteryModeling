@@ -8,9 +8,21 @@ include(joinpath(pwd(), "DCSideBatteryModeling", "DCSideBatteryModeling.jl"))
 # Load Data with PF solution from file
 omib_sys = System(joinpath(pwd(), "data", "OMIB_inverterDCside.json"))
 
-_parameter_values = instantiate_parameters(omib_sys)
-M = instantiate_model(omib_sys)
-u0 = M(_parameter_values)
+parameter_mapping = instantiate_parameters(omib_sys)
+M_4th = instantiate_4th_order_model(omib_sys)
+u0_4th = M_4th(parameter_mapping)
+
+# Building Jacobian Function (Copy of function)
+_, model_rhs, _, variables, params = ode_model_4th_order(nothing)
+@assert length(model_rhs) == length(variables)
+variable_count = length(variables)
+_eqs = zeros(length(model_rhs)) .~ model_rhs
+_nl_system = MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
+jac_exp = MTK.generate_jacobian(_nl_system)[2]
+
+# Testing Same Symtex for generate_gradient. Does not work with [2] or not
+grad_exp = MTK.generate_gradient(_nl_system)[2]
+
 
 # The use of these methods causes StackOverflow
 #jac = instantiate_jacobian(M)
@@ -18,21 +30,21 @@ u0 = M(_parameter_values)
 
 # WIP Jacobian Experiments. This is the function isntantiate evaluated in main to avoid
 # world age errors
-jac_exp = get_jacobian_expression()
-_jac = eval(jac_exp)
-jac_eval = (out, u0, params) -> _jac(out, u0, params)
-param_eval = (out, params) -> _jac(out, M.u0, params)
-n = length(M.u0)
-J = zeros(n, n)
-_parameter_values = [x.second for x in M.parameters]
-param_eval(J, _parameter_values)
-jac = ModelJacobian(jac_eval, J)
-jac(M)
+# jac_exp = get_jacobian_expression()
+# _jac = eval(jac_exp)
+# jac_eval = (out, u0, params) -> _jac(out, u0, params)
+# param_eval = (out, params) -> _jac(out, M.u0, params)
+# n = length(M.u0)
+# J = zeros(n, n)
+# _parameter_values = [x.second for x in M.parameters]
+# param_eval(J, _parameter_values)
+# jac = ModelJacobian(jac_eval, J)
+# jac(M)
 
-# Returns Generic ODE system and solves
-ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
-sol1 = solve(ode_prob, Rosenbrock23())
-plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
+# # Returns Generic ODE system and solves
+# ode_prob = instantiate_ode(omib_sys; tspan = (0.0, 5))
+# sol1 = solve(ode_prob, Rosenbrock23())
+# plot(sol1, vars = (0, 13), title = "DC Voltage Before Load Step")
 
 #=
 parameters.pl = 0.6;

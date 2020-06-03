@@ -4,7 +4,7 @@ struct ModelJacobian
 end
 
 function get_jacobian_function()
-    _, model_rhs, _, variables, params = get_internal_model(nothing)
+    _, model_rhs, _, variables, params = ode_model_4th_order(nothing)
     @assert length(model_rhs) == length(variables)
     variable_count = length(variables)
     _eqs = zeros(length(model_rhs)) .~ model_rhs
@@ -13,9 +13,19 @@ function get_jacobian_function()
     return nlsys_jac
 end
 
+function calc_jacobian_function()
+    _, model_rhs, _, variables, params = ode_model_4th_order(nothing)
+    @assert length(model_rhs) == length(variables)
+    variable_count = length(variables)
+    _eqs = zeros(length(model_rhs)) .~ model_rhs
+    _nl_system = MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
+    nlsys_jac = MTK.calculate_jacobian(_nl_system, expression = Val{false})[2] # second is in-place
+    return nlsys_jac
+end
+
 #Added temporarily while the stack overflow issue is resolved
 function get_jacobian_expression()
-    _, model_rhs, _, variables, params = get_internal_model(nothing)
+    _, model_rhs, _, variables, params = ode_model_4th_order(nothing)
     @assert length(model_rhs) == length(variables)
     variable_count = length(variables)
     _eqs = zeros(length(model_rhs)) .~ model_rhs
@@ -30,13 +40,13 @@ function instantiate_jacobian(M::ModelOperatingPoint)
     param_eval = (out, params) -> jac(out, M.u0, params)
     n = length(M.u0)
     J = zeros(n, n)
-    _parameter_values = [x.second for x in M.parameters]
-    param_eval(J, _parameter_values)
+    #_parameter_values = [x.second for x in M.parameters]
+    param_eval(J, M.parameters)
     return ModelJacobian(jac_eval, J)
 end
 
 function (J::ModelJacobian)(M::ModelOperatingPoint)
-    _parameters = [x.second for x in M.parameters]
-    J.J_func(J.J_Matrix, M.u0, _parameters)
+    #_parameters = [x.second for x in M.parameters]
+    J.J_func(J.J_Matrix, M.u0, M.parameters)
     return J.J_Matrix
 end
