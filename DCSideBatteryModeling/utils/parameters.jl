@@ -75,7 +75,7 @@ function instantiate_parameters(system::PSY.System, model = get_4th_order_nonlin
     Lb = Zb / _ωb
     Cb = 1 / (Zb * _ωb)
     # System base for DC side
-    Vb_dc = 2 * Vb
+    Vb_dc = (2/sqrt(3)) * Vb
     Ib_dc = Sb / Vb_dc
     Zb_dc = Vb_dc / Ib_dc
     Lb_dc = Zb_dc / _ωb
@@ -89,7 +89,7 @@ function instantiate_parameters(system::PSY.System, model = get_4th_order_nonlin
         #Reference set-point inputs
         pʳ => 0.5 # Get using PSY
         qʳ => 0 # Get using PSY
-        vʳ => 1 # Get using PSY
+        vʳ => 1.01 # Get using PSY
         ωʳ => 1 # Reference frequency
         # Load at rated voltage
         vl => 1 # Get using PSY
@@ -118,7 +118,7 @@ function instantiate_parameters(system::PSY.System, model = get_4th_order_nonlin
         rv => 0     # Get using PSY
         lv => 0.2   # Get using PSY
         # DC source Parameters
-        ldc => 7e-3 / Lb_dc # Get using PSY
+        ldc => 3e-3 / Lb_dc # Get using PSY
         req => (1.5e-3+2.2e-3+0.55e-3) / Zb_dc
         rb0 => 1.5e-3 / Zb_dc  # Battery steady-state resistance
         lb1 => 35e-9 / Lb_dc # Inductacne of 1st RL branch in battery model
@@ -130,9 +130,9 @@ function instantiate_parameters(system::PSY.System, model = get_4th_order_nonlin
         cb2 => 22700/Cb_dc #
         rc2 => 0.55e-3/Zb_dc #
         vb => 370 / Vb_dc  # Get using PSY
-        cdc => 3000e-6 / Cb_dc # Get using PSY
+        cdc => 1000e-6 / Cb_dc # Get using PSY
         # DC/DC converter controller parameters
-        vdcʳ => 1.01 # Get using PSY
+        vdcʳ => 1.2 # Get using PSY
         kpvb => 0.6 # Get using PSY
         kivb => 4   # Get using PSY
         kpib => 0.3863 # Get using PSY

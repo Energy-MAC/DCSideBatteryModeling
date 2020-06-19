@@ -5,7 +5,10 @@ import NLsolve
 const MTK = ModelingToolkit
 const PSY = PowerSystems
 
-include("model.jl")
+include("model_4th_order.jl")
+include("model_2nd_order.jl")
+include("model_0th_order.jl")
+include("model_dc_reduced.jl")
 include("utils/parameters.jl")
 include("utils/operating_point.jl")
 include("utils/ode_model.jl")
