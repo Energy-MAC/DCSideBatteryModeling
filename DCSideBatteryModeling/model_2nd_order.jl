@@ -321,6 +321,9 @@ function dae_model_2nd_order(::Nothing)
         d_dc(t)
         i_in(t)
         v_conv(t)
+        v_md_bar(t)
+        v_mq_bar(t)
+        a(t)
     end
 
     # Definition of the variables for non-linear system. Requires https://github.com/SciML/ModelingToolkit.jl/issues/322 to eliminate
@@ -431,7 +434,7 @@ function dae_model_2nd_order(::Nothing)
         D
         #Algebraic Eq.
 
-        -d_dc + min(1,((1/2)*((a2/Ts) * A ) + (1/2)*((-2*b1/Ts) * C + (-2*b3/Ts^3) * E )))
+        -d_dc + min(0.9,((1/2)*((a2/Ts) * A ) + (1/2)*((-2*b1/Ts) * C + (-2*b3/Ts^3) * E )))
         -i_in + (vb * ibat - ibat^2 * rb0) / vdc
         -v_conv + sqrt(v_md^2 + v_mq^2)
     ]

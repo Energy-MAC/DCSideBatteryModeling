@@ -75,7 +75,7 @@ function instantiate_parameters(system::PSY.System, model = get_4th_order_nonlin
     Lb = Zb / _ωb
     Cb = 1 / (Zb * _ωb)
     # System base for DC side
-    Vb_dc = (2/sqrt(3)) * Vb
+    Vb_dc = (sqrt(8)/sqrt(3))*Vb
     Ib_dc = Sb / Vb_dc
     Zb_dc = Vb_dc / Ib_dc
     Lb_dc = Zb_dc / _ωb
@@ -130,9 +130,9 @@ function instantiate_parameters(system::PSY.System, model = get_4th_order_nonlin
         cb2 => 22700/Cb_dc #
         rc2 => 0.55e-3/Zb_dc #
         vb => 370 / Vb_dc  # Get using PSY
-        cdc => 1000e-6 / Cb_dc # Get using PSY
+        cdc => 4000e-6 / Cb_dc # Get using PSY
         # DC/DC converter controller parameters
-        vdcʳ => 1.2 # Get using PSY
+        vdcʳ => 850/ Vb_dc # Get using PSY
         kpvb => 0.6 # Get using PSY
         kivb => 4   # Get using PSY
         kpib => 0.3863 # Get using PSY
