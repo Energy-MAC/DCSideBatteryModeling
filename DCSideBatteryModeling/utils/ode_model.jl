@@ -13,7 +13,7 @@ function instantiate_4th_order_dae(parameters, M::ModelOperatingPoint; tspan::Tu
 
     return DiffEqBase.ODEProblem(
         f,
-        [M.u0; 0.5; 0.5; 0.0; 0.0],
+        [M.u0; 0.5; 0.5; 0.0],
         tspan,
         parameters,
         jac = false,

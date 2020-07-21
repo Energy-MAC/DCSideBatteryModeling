@@ -35,20 +35,20 @@ function ode_model_2nd_order(::Nothing)
         kvi     # Voltage control integral gain
         kffv    # Voltage control differential gain
         # Virtual Impedance
-        rv
-        lv
+        rv      # Virtual Resistance
+        lv      # Vistual Inductance 
         # DC Source Parameters
         ldc     # Equivalent inductance (i.e. battery inductance and DC/DC converter inductance)
-        req
-        rb0     # Equivalent resistance
-        lb1
-        rl1
-        lb2
-        rl2
-        cb1
-        rc1
-        cb2
-        rc2
+        req     # Equivalent resistance for 0th-order model
+        rb0     # Full order resistor element 
+        lb1     # Inductance of first RL branch
+        rl1     # Resistance of first RL branch
+        lb2     # Inductance of second RL branch  
+        rl2     # Resistance of second RL branch
+        cb1     # Capacitance of first RC branch
+        rc1     # Inductance of first RC branch
+        cb2     # Inductance of first RC branch
+        rc2     # Inductance of first RC branch
         vb      # Battery Voltage
         cdc     # Dc-side capacitance
         # DC/DC converter controller parameters
@@ -57,12 +57,12 @@ function ode_model_2nd_order(::Nothing)
         kivb    # DC/DC Voltage control propotional gain
         kpib    # DC/DC Current control propotional gain
         kiib    # DC/DC Current control Integral gain
-        kpred
-        a1      # First coefficient of Pade approximation
-        a2      # Second co-efficient of Pade approxmiation
-        b1
-        b2
-        b3
+        kpred   # DC/DC Current control predictive gain
+        a1      # First coefficient of 2nd-order Pade approximation
+        a2      # Second co-efficient of 2nd-order Pade approximation
+        b1      # First coefficient of 3rd-order Pade approximation
+        b2      # Second coefficient of 3rd-order Pade approximation
+        b3      # Third coefficient of 3rd-order Pade approximation
         Ts      # DC/DC controller time delay
     end
 
@@ -84,15 +84,15 @@ function ode_model_2nd_order(::Nothing)
         γ_q(t)  #d-axis integrator term for inner AC/DC PI controller
         vdc(t)  #DC Voltage
         ibat(t) #Battery Current
-        vc1(t)
-        vc2(t)
+        vc1(t)  #Voltage across capacitor in first RC branch 
+        vc2(t)  #Voltage across capacitor in second RC branch 
         η(t)    #Integrator term for outer DC/DC PI controller
         κ(t)    #Integrator term for inner DC/DC PI controller
-        A(t)    # First term for Pade approx
-        B(t)    # Second term for Pade approx.
-        C(t)    # First term for Pade approx
-        D(t)    # Second term for Pade approx.
-        E(t)    # First term for Pade approx
+        A(t)    #First term for 2nd-order Pade approx
+        B(t)    #Second term for 2nd-order Pade approx.
+        C(t)    #First term for 3rd-order Pade approx
+        D(t)    #Second term for 3rd-order Pade approx.
+        E(t)    #Third term for 3rd-order Pade approx
     end
 
     # Definition of the variables for non-linear system. Requires https://github.com/SciML/ModelingToolkit.jl/issues/322 to eliminate
@@ -111,8 +111,8 @@ function ode_model_2nd_order(::Nothing)
         γ_q  #d-axis integrator term for inner AC/DC PI controller
         vdc  #DC Voltage
         ibat #Battery Current
-        vc1
-        vc2
+        vc1  #Voltage across capacitor in first RC branch 
+        vc2  #Voltage across capacitor in second RC branch 
         η    #Integrator term for outer DC/DC PI controller
         κ    #Integrator term for inner DC/DC PI controller
         A    # First term for Pade approx
@@ -135,11 +135,14 @@ function ode_model_2nd_order(::Nothing)
     v_mq = kip * (i_hat_q - is_q) + kii * γ_q + ω_a * lf * is_d # Inner current controller q PI
     p_inv = v_md * is_d + v_mq * is_q # Active power drawn from inverter
     q_inv = -v_md * is_q + v_mq * is_d # Reactive power drawn from inverter
-    v_gd = (vl^2 / pl) * ig_d
-    v_gq = (vl^2 / pl) * ig_q
-    i_ref = kpvb * (vdcʳ - vdc) + kivb * η
-    i_in = (vb * ibat - ibat^2 * rb0) / vdc
-    d_dc = (1/2)*((a2/Ts) * A ) + (1/2)*((-2*b1/Ts) * C + (-2*b3/Ts^3) * E)
+    v_gd = (vl^2 / pl) * ig_d # d-qaxis Load voltage
+    v_gq = (vl^2 / pl) * ig_q # q-axis load voltage
+    i_ref = kpvb * (vdcʳ - vdc) + kivb * η # Current referecne for inner DC/DC PI controller 
+    i_in = (vb * ibat - ibat^2 * rb0) / vdc # Current flwoing into DC-link capacitance 
+    d_dc = (1/2)*((a2/Ts) * A ) + (1/2)*((-2*b1/Ts) * C + (-2*b3/Ts^3) * E) # DC/DC converter duty cycle
+    is_d_dot = (ωb / lf) * (v_md - eg_d) - (rf * ωb / lf) * is_d + ωb * ω_a * is_q # derivative of is_d
+    is_q_dot = (ωb / lf) * (v_mq - eg_q) - (rf * ωb / lf) * is_q - ωb * ω_a * is_d # derivative of is_q
+    i_pred = (Ts/vdc)*(v_md * is_d_dot + v_mq * is_q_dot) # Estiamtion of change in current flowing out of DC-link capacitor over DC/DC converter switching period
 
     model_rhs = [
         ### Grid forming equations
@@ -181,11 +184,11 @@ function ode_model_2nd_order(::Nothing)
         #∂κ/dt
         i_ref + p_inv / (vdc) - i_in # Integrator for DC/DC inner PI controller
         # ∂A/dt
-        (a1/Ts)*A + (a2/Ts^2)*B + kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ # First term in Pade approximation
+        (a1/Ts)*A + (a2/Ts^2)*B + kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ + kpred*i_pred # First term in Pade approximation
         # ∂B/dt
         A # Second term in Pade approx.
         # ∂C/dt
-        (b1/Ts)*C + (b2/Ts^2)*D + (b3/Ts^3)*E + kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ # First term in Pade approximation
+        (b1/Ts)*C + (b2/Ts^2)*D + (b3/Ts^3)*E + kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ + kpred*i_pred # First term in Pade approximation
         # ∂D/dt
         C
         # ∂E/dt
@@ -260,20 +263,20 @@ function dae_model_2nd_order(::Nothing)
         kvi     # Voltage control integral gain
         kffv    # Voltage control differential gain
         # Virtual Impedance
-        rv
-        lv
+        rv      # Virtual Resistance
+        lv      # Vistual Inductance 
         # DC Source Parameters
         ldc     # Equivalent inductance (i.e. battery inductance and DC/DC converter inductance)
-        req
-        rb0     # Equivalent resistance
-        lb1
-        rl1
-        lb2
-        rl2
-        cb1
-        rc1
-        cb2
-        rc2
+        req     # Equivalent resistance for 0th-order model
+        rb0     # Full order resistor element 
+        lb1     # Inductance of first RL branch
+        rl1     # Resistance of first RL branch
+        lb2     # Inductance of second RL branch  
+        rl2     # Resistance of second RL branch
+        cb1     # Capacitance of first RC branch
+        rc1     # Inductance of first RC branch
+        cb2     # Inductance of first RC branch
+        rc2     # Inductance of first RC branch
         vb      # Battery Voltage
         cdc     # Dc-side capacitance
         # DC/DC converter controller parameters
@@ -282,12 +285,12 @@ function dae_model_2nd_order(::Nothing)
         kivb    # DC/DC Voltage control propotional gain
         kpib    # DC/DC Current control propotional gain
         kiib    # DC/DC Current control Integral gain
-        kpred
-        a1      # First coefficient of Pade approximation
-        a2      # Second co-efficient of Pade approxmiation
-        b1
-        b2
-        b3
+        kpred   # DC/DC Current control predictive gain
+        a1      # First coefficient of 2nd-order Pade approximation
+        a2      # Second co-efficient of 2nd-order Pade approximation
+        b1      # First coefficient of 3rd-order Pade approximation
+        b2      # Second coefficient of 3rd-order Pade approximation
+        b3      # Third coefficient of 3rd-order Pade approximation
         Ts      # DC/DC controller time delay
     end
 
@@ -295,66 +298,62 @@ function dae_model_2nd_order(::Nothing)
 
     # Definition of the states
     states = MTK.@variables begin
-        eg_d(t) #d-axis capacitor filter voltage
-        eg_q(t) #q-axis capacitor filter voltage
-        is_d(t) #d-axis current flowing into filter
-        is_q(t) #q-axis current flowing into filter
-        ig_d(t) #d-axis current flowing into grid
-        ig_q(t) #q-axis current flowing into grid
-        pf(t)   #Filtered active power measurement
-        qf(t)   #Filtered reactive power measurement
-        ξ_d(t)  #d-axis integrator term for outer AC/DC PI controller
-        ξ_q(t)  #q-axis integrator term for outer AC/DC PI controller
-        γ_d(t)  #d-axis integrator term for inner AC/DC PI controller
-        γ_q(t)  #d-axis integrator term for inner AC/DC PI controller
-        vdc(t)  #DC Voltage
-        ibat(t) #Battery Current
-        vc1(t)
-        vc2(t)
-        η(t)    #Integrator term for outer DC/DC PI controller
-        κ(t)    #Integrator term for inner DC/DC PI controller
-        A(t)    # First term for Pade approx
-        B(t)    # Second term for Pade approx.
-        C(t)    # First term for Pade approx
-        D(t)    # Second term for Pade approx.
-        E(t)    # First term for Pade approx
-        d_dc(t)
-        i_in(t)
-        v_conv(t)
-        v_md_bar(t)
-        v_mq_bar(t)
-        a(t)
+        eg_d(t)   #d-axis capacitor filter voltage
+        eg_q(t)   #q-axis capacitor filter voltage
+        is_d(t)   #d-axis current flowing into filter
+        is_q(t)   #q-axis current flowing into filter
+        ig_d(t)   #d-axis current flowing into grid
+        ig_q(t)   #q-axis current flowing into grid
+        pf(t)     #Filtered active power measurement
+        qf(t)     #Filtered reactive power measurement
+        ξ_d(t)    #d-axis integrator term for outer AC/DC PI controller
+        ξ_q(t)    #q-axis integrator term for outer AC/DC PI controller
+        γ_d(t)    #d-axis integrator term for inner AC/DC PI controller
+        γ_q(t)    #q-axis integrator term for inner AC/DC PI controller
+        vdc(t)    #DC Voltage
+        ibat(t)   #Battery Current
+        vc1(t)    #Voltage across capacitor in first RC branch 
+        vc2(t)    #Voltage across capacitor in second RC branch 
+        η(t)      #Integrator term for outer DC/DC PI controller
+        κ(t)      #Integrator term for inner DC/DC PI controller
+        A(t)      #First term for 2nd-order Pade approx
+        B(t)      #Second term for 2nd-order Pade approx.
+        C(t)      #First term for 3rd-order Pade approx
+        D(t)      #Second term for 3rd-order Pade approx.
+        E(t)      #Third term for 3rd-order Pade approx
+        d_dc(t)   #DC/DC converter duty cycle
+        i_in(t)   #Current flowing into the DC-link capacitor
+        v_conv(t) #Magnitude of VSC AC terminal voltage
     end
 
     # Definition of the variables for non-linear system. Requires https://github.com/SciML/ModelingToolkit.jl/issues/322 to eliminate
     variables = MTK.@variables begin
-        eg_d #d-axis capacitor filter voltage
-        eg_q #q-axis capacitor filter voltage
-        is_d #d-axis current flowing into filter
-        is_q #q-axis current flowing into filter
-        ig_d #d-axis current flowing into grid
-        ig_q #q-axis current flowing into grid
-        pf   #Filtered active power measurement
-        qf   #Filtered reactive power measurement
-        ξ_d  #d-axis integrator term for outer AC/DC PI controller
-        ξ_q  #q-axis integrator term for outer AC/DC PI controller
-        γ_d  #d-axis integrator term for inner AC/DC PI controller
-        γ_q  #d-axis integrator term for inner AC/DC PI controller
-        vdc  #DC Voltage
-        ibat #Battery Current
-        vc1
-        vc2
-        η    #Integrator term for outer DC/DC PI controller
-        κ    #Integrator term for inner DC/DC PI controller
-        A    # First term for Pade approx
-        B    # Second term for Pade approx
-        C    # First term for Pade approx
-        D    # Second term for Pade approx
-        E    # Second term for Pade approx
-        d_dc
-        i_in
-        v_conv
-        p_pred
+        eg_d   #d-axis capacitor filter voltage
+        eg_q   #q-axis capacitor filter voltage
+        is_d   #d-axis current flowing into filter
+        is_q   #q-axis current flowing into filter
+        ig_d   #d-axis current flowing into grid
+        ig_q   #q-axis current flowing into grid
+        pf     #Filtered active power measurement
+        qf     #Filtered reactive power measurement
+        ξ_d    #d-axis integrator term for outer AC/DC PI controller
+        ξ_q    #q-axis integrator term for outer AC/DC PI controller
+        γ_d    #d-axis integrator term for inner AC/DC PI controller
+        γ_q    #d-axis integrator term for inner AC/DC PI controller
+        vdc    #DC Voltage
+        ibat   #Battery Current
+        vc1    #Voltage across capacitor in first RC branch
+        vc2    #Voltage across capacitor in second RC branch
+        η      #Integrator term for outer DC/DC PI controller
+        κ      #Integrator term for inner DC/DC PI controller
+        A      #First term for 2nd-order Pade approx
+        B      #Second term for 2nd-order Pade approx
+        C      #First term for 3rd-order Pade approx
+        D      #Second term for 3rd-order Pade approx
+        E      #Third term for 3rd-order Pade approx
+        d_dc   #DC/DC converter duty cycle
+        i_in   #Current flowing into DC-link capacitor
+        v_conv #VSC AC terminal voltage 
     end
 
     # Expressions
@@ -368,19 +367,17 @@ function dae_model_2nd_order(::Nothing)
     i_hat_q = kvp * (v_iref_q - eg_q) + kvi * ξ_q + ω_a * cf * eg_d # Inner voltage controller q PI
     v_md_bar =  kip * (i_hat_d - is_d) + kii * γ_d - ω_a * lf * is_q # Inner current controller d PI
     v_mq_bar = kip * (i_hat_q - is_q) + kii * γ_q + ω_a * lf * is_d # Inner current controller q PI
-    v_bar_mag=sqrt(v_md_bar^2 + v_mq_bar^2)
-    v_md = (min(v_bar_mag, vdc)/v_bar_mag)*v_md_bar
-    v_mq = (min(v_bar_mag, vdc)/v_bar_mag)*v_mq_bar
+    v_bar_mag=sqrt(v_md_bar^2 + v_mq_bar^2) # Magnitude of voltage reference from AC/DC Inner Controller
+    v_md = (min(v_bar_mag, vdc)/v_bar_mag)*v_md_bar # d-axis modulated output AC voltage with saturation
+    v_mq = (min(v_bar_mag, vdc)/v_bar_mag)*v_mq_bar # q-axis modulated output AC voltage with saturation
     p_inv = v_md * is_d + v_mq * is_q # Active power drawn from inverter
     q_inv = -v_md * is_q + v_mq * is_d # Reactive power drawn from inverter
-    v_gd = (vl^2 / pl) * ig_d
-    v_gq = (vl^2 / pl) * ig_q
-    i_ref = kpvb * (vdcʳ - vdc) + kivb * η
-    #i_in = (vb * ibat - ibat^2 * req) / vdc
-    is_d_dot = (ωb / lf) * (v_md - eg_d) - (rf * ωb / lf) * is_d + ωb * ω_a * is_q
-    is_q_dot = (ωb / lf) * (v_mq - eg_q) - (rf * ωb / lf) * is_q - ωb * ω_a * is_d
-    p_pred = (Ts/vdc)*(v_md * is_d_dot + v_mq * is_q_dot)
-    #d_dc = (1/2)*((a2/Ts) * A + (kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ + kpred*p_pred)) + (1/2)*((-2*b1/Ts) * C + (-2*b3/Ts^3) * E -1*(kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ + kpred*p_pred))
+    v_gd = (vl^2 / pl) * ig_d # d-qaxis Load voltage
+    v_gq = (vl^2 / pl) * ig_q # q-axis load voltage
+    i_ref = kpvb * (vdcʳ - vdc) + kivb * η # Current referecne for inner DC/DC PI controller 
+    is_d_dot = (ωb / lf) * (v_md - eg_d) - (rf * ωb / lf) * is_d + ωb * ω_a * is_q # derivative of is_d
+    is_q_dot = (ωb / lf) * (v_mq - eg_q) - (rf * ωb / lf) * is_q - ωb * ω_a * is_d # derivative of is_q
+    i_pred = (Ts/vdc)*(v_md * is_d_dot + v_mq * is_q_dot) # Estiamtion of change in current flowing out of DC-link capacitor over DC/DC converter switching period
     
 
     model_rhs = [
@@ -423,19 +420,21 @@ function dae_model_2nd_order(::Nothing)
         #∂κ/dt
         i_ref + p_inv / (vdc) - i_in # Integrator for DC/DC inner PI controller
         # ∂A/dt
-        (a1/Ts)*A + (a2/Ts^2)*B + kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ + kpred*p_pred# First term in Pade approximation
+        (a1/Ts)*A + (a2/Ts^2)*B + kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ + kpred*i_pred# First term in Pade approximation
         # ∂B/dt
         A # Second term in Pade approx.
         # ∂C/dt
-        (b1/Ts)*C + (b2/Ts^2)*D + (b3/Ts^3)*E + kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ + kpred*p_pred# First term in Pade approximation
+        (b1/Ts)*C + (b2/Ts^2)*D + (b3/Ts^3)*E + kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ + kpred*i_pred# First term in Pade approximation
         # ∂D/dt
         C
         # ∂E/dt
         D
         #Algebraic Eq.
-
+        # DC/DC converter duty cycle
         -d_dc + min(0.9,((1/2)*((a2/Ts) * A ) + (1/2)*((-2*b1/Ts) * C + (-2*b3/Ts^3) * E )))
+        # Current flowing into DC-link capacitor
         -i_in + (vb * ibat - ibat^2 * rb0) / vdc
+        # VSC AC terminal voltage 
         -v_conv + sqrt(v_md^2 + v_mq^2)
     ]
 

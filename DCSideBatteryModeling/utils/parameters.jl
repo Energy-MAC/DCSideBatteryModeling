@@ -1,5 +1,4 @@
 function instantiate_parameters(system::PSY.System, model = get_4th_order_nonlinear_system())
-    # TODO: Automate better with PSY getter functions
     # AC side quantities
     ωb,      # Base Frequency
     # Grid impadance
@@ -26,28 +25,28 @@ function instantiate_parameters(system::PSY.System, model = get_4th_order_nonlin
     Dp,      # Active Power Droop
     Dq,      # Reactive Power Droop
     # SRF Current Control
-    kip,     # Current control propotional gain
-    kii,     # Current control integral gain
-    kffi,    # Current control feed-forward gain
+    kip,     # VSC Current control propotional gain
+    kii,     # VSC Current control integral gain
+    kffi,    # VSC Current control feed-forward gain
     # SRF Voltage Control
-    kvp,     # Voltage control propotional gain
-    kvi,     # Voltage control integral gain
-    kffv,    # Voltage control feed-forward  gain
+    kvp,     # VSC Voltage control propotional gain
+    kvi,     # VSC Voltage control integral gain
+    kffv,    # VSC Voltage control feed-forward  gain
     # Virtual Impedance
-    rv,
-    lv,
+    rv,      # Virutal resistance
+    lv,      # Virutal inductance
     # DC Source Parameters
     ldc,     # DC/DC inductance
-    req,     #
+    req,     # Equivalent resistance for 0th-order model
     rb0,     # Battery steady-state resistance
     lb1,     # Inductacne of 1st RL branch in battery model
     rl1,     # Resistance of 1st RL branch in battery model
     lb2,     # Inductacne of 2nd RL branch in battery model
     rl2,     # Resistance of 2nd RL branch in battery model
-    cb1,     #
-    rc1,     #
-    cb2,     #
-    rc2,     #
+    cb1,     # Capacitance of first RC branch
+    rc1,     # Resistance of first RC branch
+    cb2,     # Capacitance of second RC branch
+    rc2,     # Resistance of second RC branch
     vb,      # Battery Voltage
     cdc,     # Dc-side capacitance
     # DC/DC converter controller parameters
@@ -84,59 +83,59 @@ function instantiate_parameters(system::PSY.System, model = get_4th_order_nonlin
     p = [
         ωb => _ωb
         # Grid impadance (Currently not used)
-        lg => 0.2 # Get using PSY
-        rg => 0.01 # Get using PSY
+        lg => 0.2 # Grid inductance (p.u.)
+        rg => 0.01 # Grid resistance (p.u.)
         #Reference set-point inputs
-        pʳ => 0.5 # Get using PSY
-        qʳ => 0 # Get using PSY
-        vʳ => 1.01 # Get using PSY
-        ωʳ => 1 # Reference frequency
-        # Load at rated voltage
-        vl => 1 # Get using PSY
-        pl => 0.2 # Get using PSY
+        pʳ => 0.2 # VSC active power reference set-point (p.u.)
+        qʳ => 0 # VSC reactive power reference set-point (p.u.)
+        vʳ => 1.01 # VSC voltage reference set-point (p.u.)
+        ωʳ => 1 # VSC Reference frequency (p.u.)
+        # Load
+        vl => 1 # Rated voltage (p.u.)
+        pl => 0.2 # Active power at rated voltage (p.u.)
         # Filter parameters
-        lf => 0.08  # Get using PSY
-        cf => 0.074 # Get using PSY
-        rf => 0.003 # Get using PSY
+        lf => 0.08  # VSC Filter inductance (p.u.)
+        cf => 0.074 # VSC Filter capacitance (p.u.)
+        rf => 0.003 # VSC filer resistance (p.u.)
         # Filtering frequency
-        ωz => 0.1 * _ωb
+        ωz => 0.1 * _ωb # (p.u.)
         # Transformer Parameters
-        rt => 0.01 # Get using PSY
-        lt => 0.2  # Get using PSY
+        rt => 0.01 # Transformer resistance
+        lt => 0.2  # Transfer inductance
         # Outer Control Loops
-        Dp => 0.02 # Get using PSY
-        Dq => 0.001 # Get using PSY
+        Dp => 0.02 # VSC active power droop gain
+        Dq => 0.001 # VSC reactive power droop gain
         # SRF Current Control
-        kip => 1.27 # Get using PSY
-        kii => 14.3 # Get using PSY
-        kffi => 0.0 # Get using PSY
+        kip => 1.27 # VSC current control propotional gain
+        kii => 14.3 # VSC current control integral gain
+        kffi => 0.0 # VSC current control feed-forward gain
         # SRF Voltage Control
-        kvp => 0.59 # Get using PSY
-        kvi => 736  # Get using PSY
-        kffv => 1.0 # Get using PSY
+        kvp => 0.59 # VSC Voltage control propotional gain
+        kvi => 736  # VSC Voltage control integral gain
+        kffv => 1.0 # VSC Voltage control feed-forward gain
         # Virtual Impedance
-        rv => 0     # Get using PSY
-        lv => 0.2   # Get using PSY
+        rv => 0     # Virtual resistance in p.u.
+        lv => 0.2   # Virtual inductance in p.u.
         # DC source Parameters
-        ldc => 3e-3 / Lb_dc # Get using PSY
-        req => (1.5e-3+2.2e-3+0.55e-3) / Zb_dc
+        ldc => 3e-3 / Lb_dc # DC/DC inductor in p.u.
+        req => (1.5e-3+2.2e-3+0.55e-3) / Zb_dc # Equivalent battery resistance for 0th-order model in p.u.
         rb0 => 1.5e-3 / Zb_dc  # Battery steady-state resistance
-        lb1 => 35e-9 / Lb_dc # Inductacne of 1st RL branch in battery model
-        rl1 => 95e-3 / Zb_dc # Resistance of 1st RL branch in battery model
-        lb2 => 15e-9 / Lb_dc # Inductacne of 2nd RL branch in battery model
-        rl2 => 0.4e-3 / Zb_dc # Resistance of 2nd RL branch in battery model
-        cb1 => 0.55/Cb_dc #
-        rc1 => 2.2e-3/Zb_dc #
-        cb2 => 22700/Cb_dc #
-        rc2 => 0.55e-3/Zb_dc #
-        vb => 370 / Vb_dc  # Get using PSY
-        cdc => 4000e-6 / Cb_dc # Get using PSY
+        lb1 => 35e-9 / Lb_dc # Inductacne of 1st RL branch in battery model in p.u.
+        rl1 => 95e-3 / Zb_dc # Resistance of 1st RL branch in battery model in p.u.
+        lb2 => 15e-9 / Lb_dc # Inductacne of 2nd RL branch in battery model in p.u.
+        rl2 => 0.4e-3 / Zb_dc # Resistance of 2nd RL branch in battery model in p.u.
+        cb1 => 0.55/Cb_dc # Capacitance of first RC branch in p.u.
+        rc1 => 2.2e-3/Zb_dc # Resistance of first RC branch in p.u.
+        cb2 => 22700/Cb_dc # Capacitance of second RC branch in p.u. 
+        rc2 => 0.55e-3/Zb_dc # Resistance of second RC branch in p.u.
+        vb => 370 / Vb_dc  # Battery voltage in p.u.
+        cdc => 4000e-6 / Cb_dc # DC-link capacitance in p.u.
         # DC/DC converter controller parameters
-        vdcʳ => 850/ Vb_dc # Get using PSY
-        kpvb => 0.6 # Get using PSY
-        kivb => 4   # Get using PSY
-        kpib => 0.3863 # Get using PSY
-        kiib => 10.34 # Get using PSY
+        vdcʳ => 850/ Vb_dc # DC voltage reference
+        kpvb => 0.6 # Outer-loop DC/DC proportional gain
+        kivb => 4   # Outer-loop DC/DC integral gain
+        kpib => 0.3863 # Inner-loop DC/DC Controller proportional gain
+        kiib => 10.34 # Inner-loop DC/DC Controller integral gain
         kpred => 0.01 #Gain on one step predictor
         a1 => -6    # First coefficient of 2nd order Pade approximation
         a2 => -12    # Second co-efficient of 2nd order Pade approxmiation
