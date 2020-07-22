@@ -7,25 +7,26 @@ omib_sys =
     System(PowerModelsData(omib_file_dir), time_series_in_memory = true, runchecks = false)
 slack_bus = get_components_by_name(Component, omib_sys, "Slack Bus")[1]
 battery = GenericBattery(
+    base_power = 250.0,
     name = "Battery",
-    primemover = PrimeMovers.BA,
+    prime_mover = PrimeMovers.BA,
     available = true,
     bus = slack_bus,
-    energy = 5.0,
-    capacity = (min = 5.0, max = 100.0),
+    initial_energy = 5.0,
+    state_of_charge_limits = (min = 5.0, max = 100.0),
     rating = 70.0, #Value in per_unit of the system
-    activepower = 10.0,
-    inputactivepowerlimits = (min = 0.0, max = 50.0),
-    outputactivepowerlimits = (min = 0.0, max = 50.0),
-    reactivepower = 0.0,
-    reactivepowerlimits = (min = -50.0, max = 50.0),
+    active_power = 10.0,
+    input_active_power_limits = (min = 0.0, max = 50.0),
+    output_active_power_limits = (min = 0.0, max = 50.0),
+    reactive_power = 0.0,
+    reactive_power_limits = (min = -50.0, max = 50.0),
     efficiency = (in = 0.80, out = 0.90),
 )
 add_component!(omib_sys, battery)
-res = solve_powerflow!(omib_sys, nlsolve)
+res = solve_powerflow!(omib_sys)
 
 ###### Converter Data ######
-converter() = AverageConverter(v_rated = 690.0, s_rated = 2.75)
+converter() = AverageConverter(rated_voltage = 690.0, rated_current = 2.75)
 ###### DC Source Data ######
 dc_source() = FixedDCSource(voltage = 600.0) #Not in the original data, guessed.
 
@@ -42,7 +43,7 @@ pll() = KauraPLL(
 ###### Outer Control ######
 function outer_control()
     function virtual_inertia()
-        return VirtualInertia(Ta = 2.0, kd = 400.0, kω = 20.0, ωb = 2 * pi * 50.0)
+        return VirtualInertia(Ta = 2.0, kd = 400.0, kω = 20.0, P_ref = 1.0)
     end
     function reactive_droop()
         return ReactivePowerDroop(kq = 0.2, ωf = 1000.0)
@@ -65,14 +66,8 @@ inner_control() = CurrentControl(
 )
 
 inverter = DynamicInverter(
-    number = 1,
-    name = "VSM",
-    bus = get_bus(battery),
+    static_injector = battery,
     ω_ref = 1.0,
-    V_ref = get_voltage(get_bus(battery)),
-    P_ref = get_activepower(battery),
-    Q_ref = get_reactivepower(battery),
-    MVABase = get_rating(battery),
     converter = converter(),
     outer_control = outer_control(),
     inner_control = inner_control(),
@@ -82,4 +77,4 @@ inverter = DynamicInverter(
 )
 
 add_component!(omib_sys, inverter)
-to_json(omib_sys, joinpath(pwd(), "data/OMIB_inverterDCside.json"))
+to_json(omib_sys, joinpath(pwd(), "data/OMIB_inverterDCside.json"); force = true)
