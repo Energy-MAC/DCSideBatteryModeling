@@ -144,11 +144,11 @@ function ode_model_4th_order(::Nothing)
     v_gq = (vl^2 / pl) * ig_q # q-axis load voltage
     i_ref = kpvb * (vdcʳ - vdc) + kivb * η # Current referecne for inner DC/DC PI controller 
     i_in = (vb * ibat - ibat^2 * rb0) / vdc # Current flwoing into DC-link capacitance 
-    d_dc = (1/2)*((a2/Ts) * A ) + (1/2)*((-2*b1/Ts) * C + (-2*b3/Ts^3) * E) # DC/DC converter duty cycle
+    d_dc = (1 / 2) * ((a2 / Ts) * A) + (1 / 2) * ((-2 * b1 / Ts) * C + (-2 * b3 / Ts^3) * E) # DC/DC converter duty cycle
     is_d_dot = (ωb / lf) * (v_md - eg_d) - (rf * ωb / lf) * is_d + ωb * ω_a * is_q # derivative of is_d
     is_q_dot = (ωb / lf) * (v_mq - eg_q) - (rf * ωb / lf) * is_q - ωb * ω_a * is_d # derivative of is_q
-    i_pred = (Ts/vdc)*(v_md * is_d_dot + v_mq * is_q_dot) # Estiamtion of change in current flowing out of DC-link capacitor over DC/DC converter switching period
-    
+    i_pred = (Ts / vdc) * (v_md * is_d_dot + v_mq * is_q_dot) # Estiamtion of change in current flowing out of DC-link capacitor over DC/DC converter switching period
+
     model_rhs = [
         ### Grid forming equations
         #𝜕eg_d/𝜕t
@@ -177,27 +177,39 @@ function ode_model_4th_order(::Nothing)
         i_hat_q - is_q
         ### DC-side equations
         #∂vdc/∂t
-        (ωb/cdc) * (i_in - p_inv / (vdc))
+        (ωb / cdc) * (i_in - p_inv / (vdc))
         #∂ibat/∂t
-        (ωb / ldc) * (vb - rl2*(ibat-il2) - rl1*(ibat-il1) - vc2 - vc1 - rb0 * ibat - (1 - d_dc) * vdc)
+        (ωb / ldc) * (
+            vb - rl2 * (ibat - il2) - rl1 * (ibat - il1) - vc2 - vc1 - rb0 * ibat -
+            (1 - d_dc) * vdc
+        )
         #∂il1/∂t
-        (ωb / lb1) * (rl1*(ibat-il1))
+        (ωb / lb1) * (rl1 * (ibat - il1))
         #∂il2/∂t
-        (ωb / lb2) * (rl2*(ibat-il2))
+        (ωb / lb2) * (rl2 * (ibat - il2))
         #∂vc1/∂t
-        (ωb / cb1) * (ibat-vc1/rc1)
+        (ωb / cb1) * (ibat - vc1 / rc1)
         #∂vc2/∂t
-        (ωb / cb2) * (ibat-vc2/rc2)
+        (ωb / cb2) * (ibat - vc2 / rc2)
         #∂η/∂t
         vdcʳ - vdc # Integrator for DC/DC outer PI controller
         #∂κ/dt
         i_ref + p_inv / (vdc) - i_in # Integrator for DC/DC inner PI controller
         # ∂A/dt
-        (a1/Ts)*A + (a2/Ts^2)*B + kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ  + kpred*i_pred  # First term in Pade approximation
+        (a1 / Ts) * A +
+        (a2 / Ts^2) * B +
+        kpib * (i_ref + p_inv / (vdc) - i_in) +
+        kiib * κ +
+        kpred * i_pred  # First term in Pade approximation
         # ∂B/dt
         A # Second term in Pade approx.
         # ∂C/dt
-        (b1/Ts)*C + (b2/Ts^2)*D + (b3/Ts^3)*E + kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ  + kpred*i_pred  # First term in Pade approximation
+        (b1 / Ts) * C +
+        (b2 / Ts^2) * D +
+        (b3 / Ts^3) * E +
+        kpib * (i_ref + p_inv / (vdc) - i_in) +
+        kiib * κ +
+        kpred * i_pred  # First term in Pade approximation
         # ∂D/dt
         C
         # ∂E/dt
@@ -235,7 +247,6 @@ function ode_model_4th_order(::Nothing)
 
     return model_lhs, model_rhs, states, variables, params
 end
-
 
 function dae_model_4th_order(::Nothing)
     # Model Parameters
@@ -381,11 +392,11 @@ function dae_model_4th_order(::Nothing)
     v_iref_q = -rv * ig_q - ω_a * lv * ig_d # q-axis virtual impedance equation
     i_hat_d = kvp * (v_iref_d - eg_d) + kvi * ξ_d - ω_a * cf * eg_q # Inner voltage controller d PI
     i_hat_q = kvp * (v_iref_q - eg_q) + kvi * ξ_q + ω_a * cf * eg_d # Inner voltage controller q PI
-    v_md_bar =  kip * (i_hat_d - is_d) + kii * γ_d - ω_a * lf * is_q # Inner current controller d PI
+    v_md_bar = kip * (i_hat_d - is_d) + kii * γ_d - ω_a * lf * is_q # Inner current controller d PI
     v_mq_bar = kip * (i_hat_q - is_q) + kii * γ_q + ω_a * lf * is_d # Inner current controller q PI
-    v_bar_mag=sqrt(v_md_bar^2 + v_mq_bar^2)
-    v_md = (min(v_bar_mag, vdc)/v_bar_mag)*v_md_bar
-    v_mq = (min(v_bar_mag, vdc)/v_bar_mag)*v_mq_bar
+    v_bar_mag = sqrt(v_md_bar^2 + v_mq_bar^2)
+    v_md = (min(v_bar_mag, vdc) / v_bar_mag) * v_md_bar
+    v_mq = (min(v_bar_mag, vdc) / v_bar_mag) * v_mq_bar
     p_inv = v_md * is_d + v_mq * is_q # Active power drawn from inverter
     q_inv = -v_md * is_q + v_mq * is_d # Reactive power drawn from inverter
     v_gd = (vl^2 / pl) * ig_d # d-qaxis Load voltage
@@ -393,8 +404,7 @@ function dae_model_4th_order(::Nothing)
     i_ref = kpvb * (vdcʳ - vdc) + kivb * η # Current referecne for inner DC/DC PI controller 
     is_d_dot = (ωb / lf) * (v_md - eg_d) - (rf * ωb / lf) * is_d + ωb * ω_a * is_q # derivative of is_d
     is_q_dot = (ωb / lf) * (v_mq - eg_q) - (rf * ωb / lf) * is_q - ωb * ω_a * is_d # derivative of is_q
-    i_pred = (Ts/vdc)*(v_md * is_d_dot + v_mq * is_q_dot) # Estiamtion of change in current flowing out of DC-link capacitor over DC/DC converter switching period
-    
+    i_pred = (Ts / vdc) * (v_md * is_d_dot + v_mq * is_q_dot) # Estiamtion of change in current flowing out of DC-link capacitor over DC/DC converter switching period
 
     model_rhs = [
         ### Grid forming equations
@@ -424,34 +434,52 @@ function dae_model_4th_order(::Nothing)
         i_hat_q - is_q
         ### DC-side equations
         #∂vdc/∂t
-        (ωb/cdc) * (i_in - p_inv / (vdc))
+        (ωb / cdc) * (i_in - p_inv / (vdc))
         #∂ibat/∂t
-        (ωb / ldc) * (vb - vc1 - vc2 - rl2*(ibat-il2) - rl1*(ibat-il1) - rb0 * ibat - (1 - d_dc) * vdc)
+        (ωb / ldc) * (
+            vb - vc1 - vc2 - rl2 * (ibat - il2) - rl1 * (ibat - il1) - rb0 * ibat -
+            (1 - d_dc) * vdc
+        )
         #∂il1/∂t
-        (ωb / lb1) * (rl1*(ibat-il1))
+        (ωb / lb1) * (rl1 * (ibat - il1))
         #∂il2/∂t
-        (ωb / lb2) * (rl2*(ibat-il2))
+        (ωb / lb2) * (rl2 * (ibat - il2))
         #∂vc1/∂t
-        (ωb / cb1) * (ibat-vc1/rc1)
+        (ωb / cb1) * (ibat - vc1 / rc1)
         #∂vc2/∂t
-        (ωb / cb2) * (ibat-vc2/rc2)
+        (ωb / cb2) * (ibat - vc2 / rc2)
         #∂η/∂t
         vdcʳ - vdc # Integrator for DC/DC outer PI controller
         #∂κ/dt
         i_ref + p_inv / (vdc) - i_in # Integrator for DC/DC inner PI controller
         # ∂A/dt
-        (a1/Ts)*A + (a2/Ts^2)*B + kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ + kpred*i_pred
+        (a1 / Ts) * A +
+        (a2 / Ts^2) * B +
+        kpib * (i_ref + p_inv / (vdc) - i_in) +
+        kiib * κ +
+        kpred * i_pred
         # ∂B/dt
         A # Second term in 2nd-order Pade approx.
         # ∂C/dt
-        (b1/Ts)*C + (b2/Ts^2)*D + (b3/Ts^3)*E + kpib * (i_ref + p_inv / (vdc) - i_in) + kiib * κ + kpred*i_pred
+        (b1 / Ts) * C +
+        (b2 / Ts^2) * D +
+        (b3 / Ts^3) * E +
+        kpib * (i_ref + p_inv / (vdc) - i_in) +
+        kiib * κ +
+        kpred * i_pred
         # ∂D/dt
-        C 
+        C
         # ∂E/dt 
-        D 
+        D
         #Algebraic Eq.
         # DC/DC converter duty cycle
-        -d_dc + min(0.9,((1/2)*((a2/Ts) * A ) + (1/2)*((-2*b1/Ts) * C + (-2*b3/Ts^3) * E )))
+        -d_dc + min(
+            0.9,
+            (
+                (1 / 2) * ((a2 / Ts) * A) +
+                (1 / 2) * ((-2 * b1 / Ts) * C + (-2 * b3 / Ts^3) * E)
+            ),
+        )
         # Current flowing into DC-link capacitor
         -i_in + (vb * ibat - ibat^2 * rb0) / vdc
         # VSC AC terminal voltage 
@@ -507,6 +535,3 @@ function get_4th_order_nonlinear_system()
     _eqs = zeros(length(model_rhs)) .~ model_rhs
     return MTK.NonlinearSystem(_eqs, [variables...], [params...][2:end])
 end
-
-
-

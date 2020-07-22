@@ -1,4 +1,4 @@
-function instantiate_4th_order_dae(parameters, M::ModelOperatingPoint; tspan::Tuple,)
+function instantiate_4th_order_dae(parameters, M::ModelOperatingPoint; tspan::Tuple)
     model = get_4th_order_dae_system()
     initial_conditions = Array{Pair}(undef, length(M.u0))
     parameter_mapping = Array{Pair}(undef, length(M.parameters))
@@ -11,23 +11,17 @@ function instantiate_4th_order_dae(parameters, M::ModelOperatingPoint; tspan::Tu
     Mass = calculate_massmatrix(model)
     f = ODEFunction(model)
 
-    return DiffEqBase.ODEProblem(
-        f,
-        [M.u0; 0.5; 0.5; 0.0],
-        tspan,
-        parameters,
-        jac = false,
-    )
-#     return DiffEqBase.ODEProblem(
-#         model,
-#         initial_conditions,
-#         tspan,
-#         parameter_mapping,
-#         jac = false,
-#     )
+    return DiffEqBase.ODEProblem(f, [M.u0; 0.5; 0.5; 0.0], tspan, parameters, jac = false)
+    #     return DiffEqBase.ODEProblem(
+    #         model,
+    #         initial_conditions,
+    #         tspan,
+    #         parameter_mapping,
+    #         jac = false,
+    #     )
 end
 
-function instantiate_2nd_order_dae(parameters, M::ModelOperatingPoint; tspan::Tuple,)
+function instantiate_2nd_order_dae(parameters, M::ModelOperatingPoint; tspan::Tuple)
     model = get_2nd_order_dae_system()
     initial_conditions = Array{Pair}(undef, length(M.u0))
     parameter_mapping = Array{Pair}(undef, length(M.parameters))
@@ -40,23 +34,17 @@ function instantiate_2nd_order_dae(parameters, M::ModelOperatingPoint; tspan::Tu
     Mass = calculate_massmatrix(model)
     f = ODEFunction(model)
 
-    return DiffEqBase.ODEProblem(
-        f,
-        [M.u0; 0.5; 0.5; 0.0],
-        tspan,
-        parameters,
-        jac = false,
-    )
-#     return DiffEqBase.ODEProblem(
-#         model,
-#         initial_conditions,
-#         tspan,
-#         parameter_mapping,
-#         jac = false,
-#     )
+    return DiffEqBase.ODEProblem(f, [M.u0; 0.5; 0.5; 0.0], tspan, parameters, jac = false)
+    #     return DiffEqBase.ODEProblem(
+    #         model,
+    #         initial_conditions,
+    #         tspan,
+    #         parameter_mapping,
+    #         jac = false,
+    #     )
 end
 
-function instantiate_0th_order_dae(parameters, M::ModelOperatingPoint; tspan::Tuple,)
+function instantiate_0th_order_dae(parameters, M::ModelOperatingPoint; tspan::Tuple)
     model = get_0th_order_dae_system()
     initial_conditions = Array{Pair}(undef, length(M.u0))
     parameter_mapping = Array{Pair}(undef, length(M.parameters))
@@ -69,20 +57,14 @@ function instantiate_0th_order_dae(parameters, M::ModelOperatingPoint; tspan::Tu
     Mass = calculate_massmatrix(model)
     f = ODEFunction(model)
 
-    return DiffEqBase.ODEProblem(
-        f,
-        [M.u0; 0.5; 0.5; 0.0],
-        tspan,
-        parameters,
-        jac = false,
-    )
-#     return DiffEqBase.ODEProblem(
-#         model,
-#         initial_conditions,
-#         tspan,
-#         parameter_mapping,
-#         jac = false,
-#     )
+    return DiffEqBase.ODEProblem(f, [M.u0; 0.5; 0.5; 0.0], tspan, parameters, jac = false)
+    #     return DiffEqBase.ODEProblem(
+    #         model,
+    #         initial_conditions,
+    #         tspan,
+    #         parameter_mapping,
+    #         jac = false,
+    #     )
 end
 
 function instantiate_4th_order_ode(system::PSY.System; tspan::Tuple, kwargs...)
@@ -92,7 +74,7 @@ function instantiate_4th_order_ode(system::PSY.System; tspan::Tuple, kwargs...)
     for (ix, val) in enumerate(steady_state.u0)
         initial_conditions[ix] = MTK.states(model)[ix] => val
     end
-    
+
     return DiffEqBase.ODEProblem(
         model,
         initial_conditions,

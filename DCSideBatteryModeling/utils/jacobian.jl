@@ -3,8 +3,6 @@ struct ModelJacobian
     J_Matrix::Matrix{Float64}
 end
 
-
-
 function calc_jacobian_function()
     _, model_rhs, _, variables, params = ode_model_4th_order(nothing)
     @assert length(model_rhs) == length(variables)
@@ -45,7 +43,6 @@ function get_0th_order_jacobian_expression()
     nlsys_jac = MTK.generate_jacobian(_nl_system)[2] # second is in-place
     return nlsys_jac
 end
-
 
 #Added temporarily while the stack overflow issue is resolved
 function get_2nd_pade_jacobian_expression()

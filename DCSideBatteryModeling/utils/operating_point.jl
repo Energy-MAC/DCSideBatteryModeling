@@ -4,7 +4,6 @@ struct ModelOperatingPoint
     parameters::Vector{Float64}
 end
 
-
 function instantiate_4th_order_model(system::PSY.System; solve_powerflow = false)
     nl_sys = get_4th_order_nonlinear_system()
     variable_count = length(states(nl_sys))
@@ -227,7 +226,7 @@ function instantiate_reduced_dc_model(system::PSY.System; solve_powerflow = fals
 end
 
 function (M::ModelOperatingPoint)(parameters::Vector{Float64})
-    res = NLsolve.nlsolve((out, x) -> M.sys_func(out, x, parameters), M.u0, ftol=1e-8)
+    res = NLsolve.nlsolve((out, x) -> M.sys_func(out, x, parameters), M.u0, ftol = 1e-8)
     !NLsolve.converged(res) && @error("NLsolve failed to converge")
     M.parameters .= parameters
     M.u0 .= res.zero
@@ -242,7 +241,6 @@ function (M::ModelOperatingPoint)(
 end
 
 (M::ModelOperatingPoint)() = M(M.parameters)
-
 
 function solve_steady_state(initial_guess, parameter_values)
     _, model_rhs, _, variables, params = get_reduced_dc_model(nothing)

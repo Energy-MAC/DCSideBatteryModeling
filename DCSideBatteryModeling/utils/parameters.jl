@@ -1,4 +1,7 @@
-function instantiate_parameters(system::PSY.System, model = get_4th_order_nonlinear_system())
+function instantiate_parameters(
+    system::PSY.System,
+    model = get_4th_order_nonlinear_system(),
+)
     # AC side quantities
     ωb,      # Base Frequency
     # Grid impadance
@@ -74,7 +77,7 @@ function instantiate_parameters(system::PSY.System, model = get_4th_order_nonlin
     Lb = Zb / _ωb
     Cb = 1 / (Zb * _ωb)
     # System base for DC side
-    Vb_dc = (sqrt(8)/sqrt(3))*Vb
+    Vb_dc = (sqrt(8) / sqrt(3)) * Vb
     Ib_dc = Sb / Vb_dc
     Zb_dc = Vb_dc / Ib_dc
     Lb_dc = Zb_dc / _ωb
@@ -118,20 +121,20 @@ function instantiate_parameters(system::PSY.System, model = get_4th_order_nonlin
         lv => 0.2   # Virtual inductance in p.u.
         # DC source Parameters
         ldc => 3e-3 / Lb_dc # DC/DC inductor in p.u.
-        req => (1.5e-3+2.2e-3+0.55e-3) / Zb_dc # Equivalent battery resistance for 0th-order model in p.u.
+        req => (1.5e-3 + 2.2e-3 + 0.55e-3) / Zb_dc # Equivalent battery resistance for 0th-order model in p.u.
         rb0 => 1.5e-3 / Zb_dc  # Battery steady-state resistance
         lb1 => 35e-9 / Lb_dc # Inductacne of 1st RL branch in battery model in p.u.
         rl1 => 95e-3 / Zb_dc # Resistance of 1st RL branch in battery model in p.u.
         lb2 => 15e-9 / Lb_dc # Inductacne of 2nd RL branch in battery model in p.u.
         rl2 => 0.4e-3 / Zb_dc # Resistance of 2nd RL branch in battery model in p.u.
-        cb1 => 0.55/Cb_dc # Capacitance of first RC branch in p.u.
-        rc1 => 2.2e-3/Zb_dc # Resistance of first RC branch in p.u.
-        cb2 => 22700/Cb_dc # Capacitance of second RC branch in p.u. 
-        rc2 => 0.55e-3/Zb_dc # Resistance of second RC branch in p.u.
+        cb1 => 0.55 / Cb_dc # Capacitance of first RC branch in p.u.
+        rc1 => 2.2e-3 / Zb_dc # Resistance of first RC branch in p.u.
+        cb2 => 22700 / Cb_dc # Capacitance of second RC branch in p.u. 
+        rc2 => 0.55e-3 / Zb_dc # Resistance of second RC branch in p.u.
         vb => 370 / Vb_dc  # Battery voltage in p.u.
         cdc => 4000e-6 / Cb_dc # DC-link capacitance in p.u.
         # DC/DC converter controller parameters
-        vdcʳ => 850/ Vb_dc # DC voltage reference
+        vdcʳ => 850 / Vb_dc # DC voltage reference
         kpvb => 0.6 # Outer-loop DC/DC proportional gain
         kivb => 4   # Outer-loop DC/DC integral gain
         kpib => 0.3863 # Inner-loop DC/DC Controller proportional gain
