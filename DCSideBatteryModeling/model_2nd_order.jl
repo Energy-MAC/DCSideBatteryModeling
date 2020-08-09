@@ -2,8 +2,9 @@ function ode_model_2nd_order(::Nothing)
     # Model Parameters
     params = MTK.@parameters begin
         t
-        # AC side quantities
+        # Base quantities
         ωb      # Base Frequency
+        Cb_dc   # DC-side base capacitance
         # Grid impadance
         lg      # Grid reactance
         rg      # Grid resistance
@@ -238,8 +239,9 @@ function dae_model_2nd_order(::Nothing)
     # Model Parameters
     params = MTK.@parameters begin
         t
-        # AC side quantities
+        # Base quantities
         ωb      # Base Frequency
+        Cb_dc   # DC-side base capacitance
         # Grid impadance
         lg      # Grid reactance
         rg      # Grid resistance

@@ -2,8 +2,9 @@ function ode_model_0th_order(::Nothing)
     # Model Parameters
     params = MTK.@parameters begin
         t
-        # AC side quantities
+        # Base quantities
         ωb      # Base Frequency
+        Cb_dc   # DC-side base capacitance
         # Grid impadance
         lg      # Grid reactance
         rg      # Grid resistance
@@ -228,8 +229,9 @@ function dae_model_0th_order(::Nothing)
     # Model Parameters
     params = MTK.@parameters begin
         t
-        # AC side quantities
+        # Base quantities
         ωb      # Base Frequency
+        Cb_dc   # DC-side base capacitance
         # Grid impadance
         lg      # Grid reactance
         rg      # Grid resistance
@@ -348,7 +350,7 @@ function dae_model_0th_order(::Nothing)
         d_dc   #DC/DC converter duty cycle   
         i_in   #Current flowing into DC-link capacitor
         v_conv #Magnitude of VSC AC terminal voltage 
-    end
+    end 
 
     # Expressions
     pm = eg_d * ig_d + eg_q * ig_q  # AC Active Power Calculation
